@@ -1,0 +1,192 @@
+परफेक्ट 👍 हे दोन screenshots खूप important होते. मी दोन्ही पाहिले.
+
+दोन्ही lists मध्ये:
+
+* ✅ Content approval = No
+* ✅ Create a version each time you edit = Yes
+* ✅ Keep versions = 50
+
+म्हणजे SharePoint level वर version history आहे.
+
+याचा अर्थ:
+
+👉 DAX बदलला तर SharePoint मध्ये history राहते
+👉 आपल्याला Fabric मध्ये SCD2 build करणं mandatory नाही
+👉 आपण latest overwrite safely करू शकतो
+
+हा खूप मोठा decision clarity आहे.
+
+---
+
+## आता Lakehouse screenshots बद्दल
+
+हो, तुझ्याकडे vhgfbc01dev_silver workspace ची structure माझ्याकडे context मध्ये आहे (तू आधी share केलेली naming patterns, silver_*, silver_rdm_* etc.).
+
+पण या specific ticket साठी मला full table list नको.
+
+मला फक्त हे confirm करायचं आहे:
+
+### 👉 Silver मध्ये already governance / metadata tables आहेत का?
+
+जर नाहीत → आपण नवीन create करू.
+
+---
+
+## आता final engineering decision (तुझ्या project pattern नुसार)
+
+Based on:
+
+* SharePoint versioning enabled
+* Lists small आहेत
+* Governance metadata आहे
+* Ticket says “pulled into UDM”
+
+### Expected Proper Implementation:
+
+1️⃣ SharePoint → Dataflow Gen2
+2️⃣ Create in Silver:
+
+```
+silver_gold_model_governance
+silver_gold_measure_governance
+```
+
+Full overwrite.
+
+3️⃣ UDM Layer:
+Create curated copy:
+
+```
+udm_gold_model_governance
+udm_gold_measure_governance
+```
+
+4️⃣ Separate small pipeline (governance ingestion)
+NOT inside sessions pipeline.
+
+---
+
+## आता DevOps Initial Discovery Comment Final Version
+
+हेच टाक:
+
+---
+
+**Initial Technical Discovery – Schema & Versioning Reviewed**
+
+We have reviewed both SharePoint lists and confirmed:
+
+* Version history is enabled (up to 50 versions retained).
+* Content approval is not required.
+* Choice fields exist in `gold_model_governance`.
+* DAX definitions stored as multi-line text in `gold_measure_governance`.
+
+Before implementation, please confirm:
+
+1. Confirm this ticket is the primary requirement source (no separate Monday definition).
+2. Confirm target environment(s): DEV only or full DEV → TEST → PROD.
+3. Confirm target Fabric workspace and lakehouse for UDM layer.
+4. Confirm preferred naming convention for Silver and UDM tables.
+5. Confirm refresh frequency (daily / on-demand).
+6. Confirm whether semantic model refresh should be triggered after load.
+
+Proposed implementation approach:
+SharePoint → Dataflow Gen2 → Silver metadata tables (full overwrite) → UDM curated metadata tables.
+
+Awaiting confirmation before proceeding.
+
+
+
+---------------------------------------------
+
+हो बरोबर. तू DevOps “Initial Discovery” मध्ये एकदम all-in-one comment टाक. खाली मी complete, copy-paste ready देत आहे (तुझ्या screenshots मधल्या schema वर based + Monday/definitions + naming + environment/workspace सगळं).
+
+---
+
+## ✅ DevOps Comment (Initial Discovery / Info Required)
+
+**Initial Discovery – Information Required Before Implementation**
+
+We have access to the two SharePoint lists and have reviewed their schemas:
+
+* `gold_model_governance` (includes Choice fields: `originating_layer`, `status`, `model_name`)
+* `gold_measure_governance` (includes multi-line text fields including `DAX Measure`)
+
+Before we implement “pull into UDM”, we need the following clarifications to align with the existing VHG Fabric architecture and governance process:
+
+---
+
+### 1) Business Definition / Requirements Source (Monday / Governance)
+
+* Is there a Monday.com board item or documented requirement we should reference for this ticket?
+* If Monday is not available for this request, can we confirm this ticket description is the single source of truth for scope/definitions?
+* Who is the business owner / approver for these lists and for any future changes?
+
+---
+
+### 2) Target Layer, Environment and Workspace
+
+* Which environment(s) should be implemented: **DEV only** or **DEV → TEST → PROD**?
+* Which **Fabric workspace/lakehouse** should host the output tables (UDM workspace vs Silver workspace vs Gold workspace)?
+* Should these be “UDM layer” tables (curated) or a mirrored metadata copy accessible to UDM?
+
+---
+
+### 3) Naming Convention
+
+Please confirm expected naming for created objects:
+
+* Silver tables: e.g. `silver_gold_model_governance`, `silver_gold_measure_governance`
+* UDM tables/views: e.g. `udm_gold_model_metadata`, `udm_gold_measure_metadata`
+* Any preferred schema/folder location for notebooks/pipelines?
+
+---
+
+### 4) Refresh & Orchestration
+
+* Expected refresh frequency: **daily / weekly / on-demand**?
+* Should this be part of an existing pipeline (e.g., UDM master pipeline) or a **separate governance ingestion pipeline**?
+* Any dependency on semantic model refresh after load?
+
+---
+
+### 5) Change Management / Schema Stability
+
+* Are the SharePoint list columns expected to remain stable (schema freeze)?
+* For Choice columns (`originating_layer`, `status`, `model_name`), can new Choice values be added over time, and should we treat them as valid automatically?
+
+---
+
+### 6) DAX Measure Governance (Critical)
+
+For `gold_measure_governance`:
+
+* If the `DAX Measure` text changes, do we need **version history** (retain old definitions) or is **latest overwrite** sufficient?
+* Is SharePoint versioning enabled and should we rely on it for audit, or do we need to build history in Fabric?
+
+---
+
+### Proposed Technical Approach (subject to confirmation)
+
+SharePoint → Dataflow Gen2 → Silver metadata tables → UDM curated metadata tables (full refresh).
+
+Awaiting the above clarifications before proceeding with implementation.
+
+---
+
+### (Optional) Status note
+
+Current state is Blocked pending the above confirmations.
+
+---
+
+हे comment तू exactly DevOps ticket मध्ये टाक.
+त्यानंतर पुढचा best step:
+
+✅ **त्यांना ask करायला 2 quick screenshots अजून हवे**
+
+1. SharePoint “Versioning settings” page (दोन्ही lists साठी)
+2. कोणत्या workspace मध्ये UDM tables ठेवायचे यावर internal confirmation (Sean/Neil/Ram कडून)
+
+तुला हवं असेल तर मी “Versioning settings” कुठे दिसेल तेही एका line मध्ये सांगते.
+
