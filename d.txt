@@ -190,3 +190,16 @@ Current state is Blocked pending the above confirmations.
 
 तुला हवं असेल तर मी “Versioning settings” कुठे दिसेल तेही एका line मध्ये सांगते.
 
+
+
+proposed task:
+
+Based on the ticket, we will ingest the two SharePoint governance lists – gold_model_governance and gold_measure_governance – into Fabric.
+
+First, we will use Dataflow Gen2 to pull both lists into the Silver layer as metadata tables with full refresh. We will standardize column names, convert choice and person fields properly, and retain all DAX definitions as text.
+
+Then, as the ticket specifies pulling into UDM, we will create curated UDM metadata tables from the Silver copies to ensure a stable and controlled schema for downstream usage.
+
+Since SharePoint version history is already enabled, we will keep the latest snapshot in Fabric and rely on SharePoint for historical tracking unless additional versioning is requested.
+
+Finally, we will orchestrate this via a small governance ingestion pipeline and confirm whether a semantic model refresh needs to be triggered.”
