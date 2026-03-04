@@ -10,3 +10,21 @@ TOPN(
     'silver_rdm_service_add'[service_src_sys_inst_id], 1,
     'silver_rdm_service_add'[service_src_id], 1
 )
+
+
+
+
+// DAX Query for silver_rdm_service_add
+
+EVALUATE
+TOPN (
+    2000,
+    SUMMARIZE (
+        'silver_rdm_service_add',
+        'silver_rdm_service_add'[service_src_sys_inst_id],
+        'silver_rdm_service_add'[service_src_id],
+        'silver_rdm_service_add'[service_src_name]
+    ),
+    'silver_rdm_service_add'[service_src_sys_inst_id], 1,
+    'silver_rdm_service_add'[service_src_id], 1
+)
