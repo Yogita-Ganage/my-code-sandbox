@@ -1,0 +1,16 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "silver_rdm_service_add[service_src_id]": { "type": "string" },
+      "silver_rdm_service_add[service_src_name]": { "type": "string" },
+      "silver_rdm_service_add[service_src_sys_inst_id]": { "type": "string" }
+    },
+    "required": [
+      "silver_rdm_service_add[service_src_id]",
+      "silver_rdm_service_add[service_src_name]",
+      "silver_rdm_service_add[service_src_sys_inst_id]"
+    ]
+  }
+}
