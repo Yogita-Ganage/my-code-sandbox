@@ -1,29 +1,14 @@
 SELECT
-    an.id AS anamnesis_id,
-    an.appointment_id,
-    an.user_id,
-    COUNT(*) AS matched_assessment_rows
-FROM silver_drj_anamnesises an
-LEFT JOIN silver_drj_appointment_assessments aa
-    ON an.appointment_id = aa.appointment_id
-LEFT JOIN silver_drj_assessment_results ar
-    ON aa.assessment_id = ar.assessment_id
-   AND an.user_id = ar.user_id
-GROUP BY
-    an.id,
-    an.appointment_id,
-    an.user_id
-HAVING COUNT(*) > 1
-ORDER BY matched_assessment_rows DESC;
+  ar.created_at,
+  to_timestamp(ar.created_at, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") AS form_ans_time_id
+FROM silver_drj_assessment_results ar
+LIMIT 20;
 
 
 
-SELECT
-    COUNT(*) AS joined_rows,
-    COUNT(DISTINCT an.id) AS distinct_anamnesis_rows
-FROM silver_drj_anamnesises an
-LEFT JOIN silver_drj_appointment_assessments aa
-    ON an.appointment_id = aa.appointment_id
-LEFT JOIN silver_drj_assessment_results ar
-    ON aa.assessment_id = ar.assessment_id
-   AND an.user_id = ar.user_id;
+to_timestamp(ar.created_at, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") AS form_ans_time_id,
+
+
+
+
+Added form_ans_time_id for MPB using silver_drj_assessment_results.created_at converted to timestamp format, as confirmed despite the column name containing "id".
