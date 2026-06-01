@@ -1,1 +1,11 @@
-Reviewed MPB form_ans_date mapping against the provided Clinical Scores definitions. Confirmed with Eve that the current definitions are for fact/assessment data only and definitions for anamnesis tables have not yet been created. Therefore, assessment/clinical scores block will use date extracted from drj_assessmentresults.created_at as per definition. No additional join from anamnesis block to assessment results will be added, as it creates multiple matches and anamnesis definitions are out of scope for this change.
+Updated SONE/S1 mapping for form_ans_date in silver_form_answer.
+
+Mapped form_ans_date as per the Clinical Scores definition by extracting the date from SRCode.DateEventRecorded.
+
+Implemented logic using date_event_recorded from silver_sone_srcode and converted the source string timestamp into a DATE value.
+
+Validation completed:
+
+Notebook ran successfully.
+form_ans_date is now populated for SONE records.
+Spot check confirms values are appearing correctly in date format, e.g. 2023-10-06, 2024-01-23, 2024-06-11.
