@@ -1,13 +1,5 @@
-Hi Eve,
+I checked whether the first MPB epicrisis/anamnesis block can be linked to drj_assessmentresults for the Clinical Scores attributes.
 
-I’m reviewing the MPB mapping for `form_ans_date` in `silver_form_answer`.
+There is no direct one-to-one relationship. The possible join path through appointment assessments creates multiple assessment result matches per anamnesis record. For example, some anamnesis records match over 100 assessment rows, and the joined row count increases from around 567k distinct anamnesis rows to around 7.8m joined rows.
 
-The definitions provided seem to relate to the second MPB block only, which is the assessment / clinical scores block using `drj_assessmentresults`. For that block, `form_ans_date` is defined as the date extracted from `drj_assessmentresults.created_at`.
-
-However, there is also a first MPB block for epicrisis / anamnesis answers. I cannot see a definition for `form_ans_date` for this first block.
-
-Could you please confirm what we should use for `form_ans_date` in the first MPB epicrisis / anamnesis block?
-
-Currently it is using `TO_DATE(an.created_at)` from `silver_drj_anamnesises`. Should we keep this, or should `form_ans_date` be left null for this block?
-
-I don’t think we should join `drj_assessmentresults` into the first block just to populate `form_ans_date`, unless there is a confirmed relationship between those records.
+Because of this, I don’t think we should join drj_assessmentresults into the first MPB block just to populate attributes such as form_ans_date.
