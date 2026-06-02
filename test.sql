@@ -1,3 +1,5 @@
+%%sql
+
 WITH date_lookup AS (
     SELECT
         activity_header_id,
@@ -75,9 +77,11 @@ joined_rows AS (
 )
 
 SELECT
-    COUNT(*) AS total_answer_rows,
-    COUNT(raw_session_date) AS matched_raw_session_date_rows,
-    COUNT(expected_form_ans_date) AS parsed_form_ans_date_rows,
-    COUNT(*) - COUNT(raw_session_date) AS no_session_date_match_rows,
-    COUNT(raw_session_date) - COUNT(expected_form_ans_date) AS matched_but_not_parsed_rows
-FROM joined_rows;
+    raw_session_date,
+    COUNT(*) AS row_count
+FROM joined_rows
+WHERE raw_session_date IS NOT NULL
+  AND expected_form_ans_date IS NULL
+GROUP BY raw_session_date
+ORDER BY row_count DESC
+LIMIT 100;
