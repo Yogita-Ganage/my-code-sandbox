@@ -112,3 +112,29 @@ GROUP BY
 HAVING COUNT(*) > 1
 ORDER BY row_count DESC
 LIMIT 50;
+
+
+
+
+WITH cleaned AS (
+    SELECT
+        activity_header_id,
+        group_id,
+        group_desc,
+        raw_session_date,
+
+        TRIM(
+            REGEXP_REPLACE(
+                REGEXP_REPLACE(
+                    REGEXP_REPLACE(
+                        REGEXP_REPLACE(INITCAP(TRIM(raw_session_date)), '[–—]', '-'),
+                        '^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\\s+', ''
+                    ),
+                    '([0-9]{1,2})(st|nd|rd|th)\\b', '$1'
+                ),
+                ',', ''
+            )
+        ) AS clean_session_date
+
+    FROM test_temp_wip_form_answer_date_lookup
+)
