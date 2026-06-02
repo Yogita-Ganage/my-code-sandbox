@@ -138,3 +138,13 @@ WITH cleaned AS (
 
     FROM test_temp_wip_form_answer_date_lookup
 )
+
+
+
+WIP form_ans_date logic updated as per definition.
+
+Created date lookup from temp_silver_wip_activityheader_statistics using Session Date / Call Date answers. Only groups with a single distinct date value are used to avoid ambiguous date assignment.
+
+Added parsed date lookup to clean and parse common WIP free-text date formats, including slash, dot, dash, ordinal dates, weekday prefixes, and month-name formats. Invalid or incomplete values such as DNA, SC review, or dates without year are left as null.
+
+Updated WIP silver_form_answer mapping to populate form_ans_date from parsed_form_ans_date instead of ae.updated_date_time. Validated populated/null counts and checked unparsed values.
