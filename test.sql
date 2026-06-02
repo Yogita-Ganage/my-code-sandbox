@@ -1,13 +1,73 @@
-LEFT JOIN temp_wip_form_answer_parsed_date_lookup pdl
-    ON pdl.activity_header_id = s.activity_header_id
-   AND pdl.group_id = s.group_id
-   AND TRIM(LOWER(pdl.group_desc)) = TRIM(LOWER(s.group_desc))
+%%sql
+
+SELECT
+    activity_header_id,
+    group_id,
+    group_desc,
+    COUNT(*) AS date_row_count,
+    COUNT(DISTINCT value_desc) AS distinct_date_value_count,
+    CONCAT_WS(' | ', COLLECT_SET(value_desc)) AS date_values
+FROM temp_silver_wip_activityheader_statistics
+WHERE TRIM(LOWER(type_desc)) IN ('call date', 'session date')
+  AND value_desc IS NOT NULL
+GROUP BY
+    activity_header_id,
+    group_id,
+    group_desc
+HAVING COUNT(DISTINCT value_desc) > 1
+ORDER BY distinct_date_value_count DESC, date_row_count DESC
+LIMIT 100;
 
 
-,pdl.parsed_form_ans_date AS form_ans_date
+
+%%sql
+
+SELECT
+    activity_header_id,
+    group_id,
+    group_desc,
+    type_id,
+    type_desc,
+    value_desc,
+    COUNT(*) AS duplicate_row_count
+FROM temp_silver_wip_activityheader_statistics
+WHERE TRIM(LOWER(type_desc)) IN ('call date', 'session date')
+  AND value_desc IS NOT NULL
+GROUP BY
+    activity_header_id,
+    group_id,
+    group_desc,
+    type_id,
+    type_desc,
+    value_desc
+HAVING COUNT(*) > 1
+ORDER BY duplicate_row_count DESC
+LIMIT 100;
 
 
 
+%%sql
+
+SELECT
+    COUNT(*) AS total_date_groups,
+    SUM(CASE WHEN distinct_date_value_count = 1 THEN 1 ELSE 0 END) AS single_date_groups,
+    SUM(CASE WHEN distinct_date_value_count > 1 THEN 1 ELSE 0 END) AS multiple_date_groups
+FROM (
+    SELECT
+        activity_header_id,
+        group_id,
+        group_desc,
+        COUNT(DISTINCT value_desc) AS distinct_date_value_count
+    FROM temp_silver_wip_activityheader_statistics
+    WHERE TRIM(LOWER(type_desc)) IN ('call date', 'session date')
+      AND value_desc IS NOT NULL
+    GROUP BY
+        activity_header_id,
+        group_id,
+        group_desc
+) x;
+
+--vali---
 
 %%sql
 
