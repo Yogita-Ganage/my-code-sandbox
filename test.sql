@@ -67,7 +67,6 @@ joined_rows AS (
         END AS expected_form_ans_date
 
     FROM test_temp_silver_wip_activityheader_statistics s
-
     LEFT JOIN date_lookup dl
         ON dl.activity_header_id = s.activity_header_id
        AND dl.group_id = s.group_id
@@ -77,9 +76,11 @@ joined_rows AS (
 )
 
 SELECT
-    COUNT(*) AS total_answer_rows,
-    COUNT(raw_session_date) AS matched_raw_session_date_rows,
-    COUNT(expected_form_ans_date) AS parsed_form_ans_date_rows,
-    COUNT(*) - COUNT(raw_session_date) AS no_session_date_match_rows,
-    COUNT(raw_session_date) - COUNT(expected_form_ans_date) AS matched_but_not_parsed_rows
-FROM joined_rows;
+    raw_session_date,
+    COUNT(*) AS row_count
+FROM joined_rows
+WHERE raw_session_date IS NOT NULL
+  AND expected_form_ans_date IS NULL
+GROUP BY raw_session_date
+ORDER BY row_count DESC
+LIMIT 50;
