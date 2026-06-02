@@ -140,11 +140,16 @@ WITH cleaned AS (
 )
 
 
+WIP form_ans_date logic updated as per the clinical score definition.
 
-WIP form_ans_date logic updated as per definition.
+Updated the existing temp table temp_silver_wip_activityheader_statistics to include the required source answer/date context.
 
-Created date lookup from temp_silver_wip_activityheader_statistics using Session Date / Call Date answers. Only groups with a single distinct date value are used to avoid ambiguous date assignment.
+Added new lookup table temp_wip_form_answer_date_lookup to identify Session Date / Call Date values from temp_silver_wip_activityheader_statistics. Only groups with a single distinct date value are included using HAVING COUNT(DISTINCT value_desc) = 1, to avoid ambiguous date assignment.
 
-Added parsed date lookup to clean and parse common WIP free-text date formats, including slash, dot, dash, ordinal dates, weekday prefixes, and month-name formats. Invalid or incomplete values such as DNA, SC review, or dates without year are left as null.
+Added new parsed lookup table temp_wip_form_answer_parsed_date_lookup to clean and parse WIP free-text date values. This handles common formats such as slash, dot, dash, ordinal dates, weekday prefixes, and month-name dates. Invalid or incomplete values such as DNA, SC review, or dates without a year are left as null.
 
-Updated WIP silver_form_answer mapping to populate form_ans_date from parsed_form_ans_date instead of ae.updated_date_time. Validated populated/null counts and checked unparsed values.
+Updated the WIP block in silver_form_answer to join with temp_wip_form_answer_parsed_date_lookup using activity_header_id, group_id, and group_desc.
+
+Changed form_ans_date mapping from TO_DATE(ae.updated_date_time) to pdl.parsed_form_ans_date.
+
+Validation completed using test table wiptest_silver_form_answer to confirm populated/null counts and review unparsed values.
