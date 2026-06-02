@@ -17,3 +17,13 @@ GROUP BY
     value_desc
 HAVING COUNT(*) > 1
 ORDER BY row_count DESC;
+
+
+SELECT
+    id,
+    COUNT(*) AS row_count
+FROM temp_silver_wip_activityheader_statistics
+WHERE TRIM(LOWER(type_desc)) IN ('call date', 'session date')
+GROUP BY id
+HAVING COUNT(*) > 1
+ORDER BY row_count DESC;
