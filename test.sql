@@ -37,16 +37,37 @@ joined_rows AS (
             WHEN dl.raw_session_date RLIKE '^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}$'
                 THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(dl.raw_session_date, 'd.M.yyyy')))
 
+            WHEN dl.raw_session_date RLIKE '^[0-9]{1,2}-[0-9]{1,2}-[0-9]{2}$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(dl.raw_session_date, 'd-M-yy')))
+
+            WHEN dl.raw_session_date RLIKE '^[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(dl.raw_session_date, 'd-M-yyyy')))
+
             WHEN dl.raw_session_date RLIKE '^[0-9]{1,2}(st|nd|rd|th)? [A-Za-z]{3} [0-9]{4}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_REPLACE(dl.raw_session_date, '(st|nd|rd|th)', ''), 'd MMM yyyy')))
+                THEN TO_DATE(
+                    FROM_UNIXTIME(
+                        UNIX_TIMESTAMP(
+                            REGEXP_REPLACE(dl.raw_session_date, '(st|nd|rd|th)', ''),
+                            'd MMM yyyy'
+                        )
+                    )
+                )
 
             WHEN dl.raw_session_date RLIKE '^[0-9]{1,2}(st|nd|rd|th)? [A-Za-z]+ [0-9]{4}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_REPLACE(dl.raw_session_date, '(st|nd|rd|th)', ''), 'd MMMM yyyy')))
+                THEN TO_DATE(
+                    FROM_UNIXTIME(
+                        UNIX_TIMESTAMP(
+                            REGEXP_REPLACE(dl.raw_session_date, '(st|nd|rd|th)', ''),
+                            'd MMMM yyyy'
+                        )
+                    )
+                )
 
             ELSE NULL
         END AS expected_form_ans_date
 
     FROM test_temp_silver_wip_activityheader_statistics s
+
     LEFT JOIN date_lookup dl
         ON dl.activity_header_id = s.activity_header_id
        AND dl.group_id = s.group_id
@@ -56,11 +77,9 @@ joined_rows AS (
 )
 
 SELECT
-    raw_session_date,
-    COUNT(*) AS row_count
-FROM joined_rows
-WHERE raw_session_date IS NOT NULL
-  AND expected_form_ans_date IS NULL
-GROUP BY raw_session_date
-ORDER BY row_count DESC
-LIMIT 50;
+    COUNT(*) AS total_answer_rows,
+    COUNT(raw_session_date) AS matched_raw_session_date_rows,
+    COUNT(expected_form_ans_date) AS parsed_form_ans_date_rows,
+    COUNT(*) - COUNT(raw_session_date) AS no_session_date_match_rows,
+    COUNT(raw_session_date) - COUNT(expected_form_ans_date) AS matched_but_not_parsed_rows
+FROM joined_rows;
