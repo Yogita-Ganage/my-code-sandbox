@@ -21,9 +21,6 @@ base_rows AS (
         s.activity_header_id,
         s.group_id,
         s.group_desc,
-        s.type_id,
-        s.type_desc AS answer_question,
-        s.src_answer_desc AS answer_value,
         dl.raw_session_date,
 
         TRIM(
@@ -58,54 +55,8 @@ base_rows AS (
 
 parsed_rows AS (
     SELECT
-        activity_header_id,
-        group_id,
-        group_desc,
-        type_id,
-        answer_question,
-        answer_value,
         raw_session_date,
         clean_session_date,
-
-        CASE
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}/[0-9]{1,2}/[0-9]{2})', 1)
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}/[0-9]{1,2}/[0-9]{4})', 1)
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2})', 1)
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4})', 1)
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}-[0-9]{1,2}-[0-9]{2}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}-[0-9]{1,2}-[0-9]{2})', 1)
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}-[0-9]{1,2}-[0-9]{4})', 1)
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]{3} [0-9]{2}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]{3} [0-9]{2})', 1)
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]{3} [0-9]{4}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]{3} [0-9]{4})', 1)
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]+ [0-9]{2}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]+ [0-9]{2})', 1)
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]+ [0-9]{4}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]+ [0-9]{4})', 1)
-
-            WHEN clean_session_date RLIKE '^[A-Za-z]{3} [0-9]{1,2} [0-9]{4}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([A-Za-z]{3} [0-9]{1,2} [0-9]{4})', 1)
-
-            WHEN clean_session_date RLIKE '^[A-Za-z]+ [0-9]{1,2} [0-9]{4}.*$'
-                THEN REGEXP_EXTRACT(clean_session_date, '^([A-Za-z]+ [0-9]{1,2} [0-9]{4})', 1)
-
-            ELSE NULL
-        END AS extracted_date_text,
 
         CASE
             WHEN clean_session_date RLIKE '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2}.*$'
@@ -151,16 +102,9 @@ parsed_rows AS (
 )
 
 SELECT
-    activity_header_id,
-    group_id,
-    group_desc,
-    type_id,
-    answer_question,
-    answer_value,
-    raw_session_date,
-    clean_session_date,
-    extracted_date_text,
-    expected_form_ans_date
-FROM parsed_rows
-WHERE raw_session_date IS NOT NULL
-LIMIT 200;
+    COUNT(*) AS total_answer_rows,
+    COUNT(raw_session_date) AS matched_raw_session_date_rows,
+    COUNT(expected_form_ans_date) AS parsed_form_ans_date_rows,
+    COUNT(*) - COUNT(raw_session_date) AS no_session_date_match_rows,
+    COUNT(raw_session_date) - COUNT(expected_form_ans_date) AS matched_but_not_parsed_rows
+FROM parsed_rows;
