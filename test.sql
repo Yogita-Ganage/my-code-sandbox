@@ -1,22 +1,3 @@
-SELECT
-    activity_header_id,
-    group_id,
-    group_desc,
-    COUNT(*) AS date_row_count,
-    COUNT(DISTINCT id) AS distinct_date_ids,
-    COUNT(DISTINCT value_desc) AS distinct_date_values
-FROM test_temp_silver_wip_activityheader_statistics
-WHERE TRIM(LOWER(type_desc)) IN ('call date', 'session date')
-GROUP BY
-    activity_header_id,
-    group_id,
-    group_desc
-HAVING COUNT(DISTINCT value_desc) > 1
-ORDER BY distinct_date_values DESC;
-
-
-
-
 WITH date_lookup AS (
     SELECT
         activity_header_id,
@@ -25,10 +6,12 @@ WITH date_lookup AS (
         MAX(value_desc) AS raw_session_date
     FROM test_temp_silver_wip_activityheader_statistics
     WHERE TRIM(LOWER(type_desc)) IN ('call date', 'session date')
+      AND value_desc IS NOT NULL
     GROUP BY
         activity_header_id,
         group_id,
         group_desc
+    HAVING COUNT(DISTINCT value_desc) = 1
 )
 
 SELECT
