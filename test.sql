@@ -12,6 +12,60 @@ WITH date_lookup AS (
         group_id,
         group_desc
     HAVING COUNT(DISTINCT value_desc) = 1
+),
+
+joined_rows AS (
+    SELECT
+        s.activity_header_id,
+        s.group_id,
+        s.group_desc,
+        s.type_desc AS answer_question,
+        dl.raw_session_date,
+        COALESCE(
+            TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'dd/MM/yyyy')),
+            TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'd/M/yyyy')),
+            TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'dd/MM/yy')),
+            TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'd/M/yy')),
+            TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'dd.M.yy')),
+            TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'd.M.yy')),
+            TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'dd.M.yyyy')),
+            TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'd.M.yyyy')),
+            TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'd MMMM yyyy')),
+            TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'dd MMMM yyyy'))
+        ) AS expected_form_ans_date
+    FROM test_temp_silver_wip_activityheader_statistics s
+    LEFT JOIN date_lookup dl
+        ON dl.activity_header_id = s.activity_header_id
+       AND dl.group_id = s.group_id
+       AND TRIM(LOWER(dl.group_desc)) = TRIM(LOWER(s.group_desc))
+    WHERE TRIM(LOWER(s.type_desc)) NOT IN ('call date', 'session date')
+)
+
+SELECT
+    COUNT(*) AS total_answer_rows,
+    COUNT(raw_session_date) AS matched_raw_session_date_rows,
+    COUNT(expected_form_ans_date) AS parsed_form_ans_date_rows,
+    COUNT(*) - COUNT(raw_session_date) AS no_session_date_match_rows,
+    COUNT(raw_session_date) - COUNT(expected_form_ans_date) AS matched_but_not_parsed_rows
+FROM joined_rows;
+
+
+
+
+WITH date_lookup AS (
+    SELECT
+        activity_header_id,
+        group_id,
+        group_desc,
+        MAX(value_desc) AS raw_session_date
+    FROM test_temp_silver_wip_activityheader_statistics
+    WHERE TRIM(LOWER(type_desc)) IN ('call date', 'session date')
+      AND value_desc IS NOT NULL
+    GROUP BY
+        activity_header_id,
+        group_id,
+        group_desc
+    HAVING COUNT(DISTINCT value_desc) = 1
 )
 
 SELECT
@@ -21,7 +75,6 @@ SELECT
     s.type_desc AS answer_question,
     s.src_answer_desc AS answer_value,
     dl.raw_session_date,
-
     COALESCE(
         TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'dd/MM/yyyy')),
         TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'd/M/yyyy')),
@@ -34,11 +87,11 @@ SELECT
         TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'd MMMM yyyy')),
         TO_DATE(TO_TIMESTAMP(dl.raw_session_date, 'dd MMMM yyyy'))
     ) AS expected_form_ans_date
-
 FROM test_temp_silver_wip_activityheader_statistics s
 LEFT JOIN date_lookup dl
     ON dl.activity_header_id = s.activity_header_id
    AND dl.group_id = s.group_id
    AND TRIM(LOWER(dl.group_desc)) = TRIM(LOWER(s.group_desc))
 WHERE TRIM(LOWER(s.type_desc)) NOT IN ('call date', 'session date')
+  AND dl.raw_session_date IS NOT NULL
 LIMIT 100;
