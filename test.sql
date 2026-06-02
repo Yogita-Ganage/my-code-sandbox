@@ -21,7 +21,6 @@ base_rows AS (
         s.activity_header_id,
         s.group_id,
         s.group_desc,
-        s.type_desc AS answer_question,
         dl.raw_session_date,
 
         TRIM(
@@ -32,8 +31,8 @@ base_rows AS (
                         '^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\\s+',
                         ''
                     ),
-                    '(st|nd|rd|th)',
-                    ''
+                    '([0-9]{1,2})(st|nd|rd|th)\\b',
+                    '$1'
                 ),
                 ',',
                 ''
@@ -41,6 +40,7 @@ base_rows AS (
         ) AS clean_session_date
 
     FROM test_temp_silver_wip_activityheader_statistics s
+
     LEFT JOIN date_lookup dl
         ON dl.activity_header_id = s.activity_header_id
        AND dl.group_id = s.group_id
@@ -49,45 +49,41 @@ base_rows AS (
     WHERE TRIM(LOWER(s.type_desc)) NOT IN ('call date', 'session date')
 ),
 
-joined_rows AS (
+parsed_rows AS (
     SELECT
-        activity_header_id,
-        group_id,
-        group_desc,
-        answer_question,
         raw_session_date,
         clean_session_date,
 
         CASE
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(clean_session_date, 'd/M/yy')))
+            WHEN clean_session_date RLIKE '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2}.*$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}/[0-9]{1,2}/[0-9]{2})', 1), 'd/M/yy')))
 
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(clean_session_date, 'd/M/yyyy')))
+            WHEN clean_session_date RLIKE '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}.*$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}/[0-9]{1,2}/[0-9]{4})', 1), 'd/M/yyyy')))
 
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(clean_session_date, 'd.M.yy')))
+            WHEN clean_session_date RLIKE '^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2}.*$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2})', 1), 'd.M.yy')))
 
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(clean_session_date, 'd.M.yyyy')))
+            WHEN clean_session_date RLIKE '^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}.*$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4})', 1), 'd.M.yyyy')))
 
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}-[0-9]{1,2}-[0-9]{2}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(clean_session_date, 'd-M-yy')))
+            WHEN clean_session_date RLIKE '^[0-9]{1,2}-[0-9]{1,2}-[0-9]{2}.*$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}-[0-9]{1,2}-[0-9]{2})', 1), 'd-M-yy')))
 
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(clean_session_date, 'd-M-yyyy')))
+            WHEN clean_session_date RLIKE '^[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}.*$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}-[0-9]{1,2}-[0-9]{4})', 1), 'd-M-yyyy')))
 
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]{3} [0-9]{2}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(clean_session_date, 'd MMM yy')))
+            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]{3} [0-9]{2}.*$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]{3} [0-9]{2})', 1), 'd MMM yy')))
 
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]{3} [0-9]{4}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(clean_session_date, 'd MMM yyyy')))
+            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]{3} [0-9]{4}.*$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]{3} [0-9]{4})', 1), 'd MMM yyyy')))
 
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]+ [0-9]{2}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(clean_session_date, 'd MMMM yy')))
+            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]+ [0-9]{2}.*$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]+ [0-9]{2})', 1), 'd MMMM yy')))
 
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]+ [0-9]{4}$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(clean_session_date, 'd MMMM yyyy')))
+            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]+ [0-9]{4}.*$'
+                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]+ [0-9]{4})', 1), 'd MMMM yyyy')))
 
             ELSE NULL
         END AS expected_form_ans_date
@@ -99,7 +95,7 @@ SELECT
     raw_session_date,
     clean_session_date,
     COUNT(*) AS row_count
-FROM joined_rows
+FROM parsed_rows
 WHERE raw_session_date IS NOT NULL
   AND expected_form_ans_date IS NULL
 GROUP BY
