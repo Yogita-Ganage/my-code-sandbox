@@ -1,3 +1,23 @@
+%%sql
+
+SELECT
+    COUNT(*) AS different_parsed_date_rows
+FROM temp_wip_form_answer_parsed_date_lookup_v1_start_match v1
+INNER JOIN temp_wip_form_answer_parsed_date_lookup_v2_extract_anywhere v2
+    ON v1.activity_header_id = v2.activity_header_id
+   AND v1.group_id = v2.group_id
+   AND TRIM(LOWER(v1.group_desc)) = TRIM(LOWER(v2.group_desc))
+   AND COALESCE(v1.raw_session_date, '') = COALESCE(v2.raw_session_date, '')
+WHERE v1.parsed_form_ans_date IS NOT NULL
+  AND v2.parsed_form_ans_date IS NOT NULL
+  AND v1.parsed_form_ans_date <> v2.parsed_form_ans_date;
+
+
+
+
+
+
+
 v1--
 
 %%sql
