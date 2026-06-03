@@ -1,25 +1,28 @@
 %%sql
 
 SELECT
-    raw_session_date,
-    clean_session_date,
-    parsed_form_ans_date
-FROM temp_wip_form_answer_parsed_date_lookup
-WHERE raw_session_date IN (
-    '17/3/22',
-    '17/03/2022',
-    '17.03.22',
-    '17-03-2022',
-    '17th March 2022',
-    'Friday 17th March 2022',
-    'see 17/3/22',
-    'DNA final session',
-    'SC review'
-)
-ORDER BY raw_session_date;
+    COUNT(*) AS total_rows,
+    COUNT(parsed_form_ans_date) AS parsed_rows,
+    COUNT(*) - COUNT(parsed_form_ans_date) AS not_parsed_rows
+FROM temp_wip_form_answer_parsed_date_lookup;
 
 
 -------
+
+%%sql
+
+SELECT
+    raw_session_date,
+    clean_session_date,
+    COUNT(*) AS row_count
+FROM temp_wip_form_answer_parsed_date_lookup
+WHERE parsed_form_ans_date IS NULL
+GROUP BY raw_session_date, clean_session_date
+ORDER BY row_count DESC
+LIMIT 100;
+
+
+
 
 %%sql
 
