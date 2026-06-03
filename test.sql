@@ -20,7 +20,9 @@ Created a temporary parsed date lookup table:
 temp_wip_form_answer_parsed_date_lookup
 
 This lookup parses free-text WIP date answers into parsed_form_ans_date. The logic first uses the existing start-of-text date parsing, then applies fallback parsing only when the first parse returns null. This keeps existing valid parsed dates unchanged while also handling valid dates found later in free-text values.
-
+Examples:
+10.05.24 (23/07/2024 with Gail) → 2024-05-10
+DNA 4/3/25 → 2025-03-04
 Added Spark write configuration to allow old/future source dates to be written without the notebook failing.
 
 Validation completed:
