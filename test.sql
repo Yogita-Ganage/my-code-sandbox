@@ -1,183 +1,34 @@
-%%sql
+# Allows Spark to write old/future source dates without failing.
+spark.conf.set("spark.sql.parquet.datetimeRebaseModeInWrite", "CORRECTED")
 
-DROP TABLE IF EXISTS temp_wip_form_answer_parsed_date_lookup;
+# Allows Spark to write old timestamp values without failing.
+spark.conf.set("spark.sql.parquet.int96RebaseModeInWrite", "CORRECTED")
 
-CREATE TABLE temp_wip_form_answer_parsed_date_lookup AS
-WITH cleaned AS (
-    SELECT
-        activity_header_id,
-        group_id,
-        group_desc,
-        raw_session_date,
 
-        TRIM(
-            REGEXP_REPLACE(
-                REGEXP_REPLACE(
-                    REGEXP_REPLACE(
-                        REGEXP_REPLACE(REGEXP_REPLACE(INITCAP(TRIM(raw_session_date)), '[–—]', '-'), ',', ''),
-                        '^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\\s+', ''
-                    ),
-                    '([0-9]{1,2})(st|nd|rd|th)\\b', '$1'
-                ),
-                'Sept\\.?',
-                'Sep'
-            )
-        ) AS clean_session_date
 
-    FROM temp_wip_form_answer_date_lookup
-),
-
-parsed AS (
-    SELECT
-        activity_header_id,
-        group_id,
-        group_desc,
-        raw_session_date,
-        clean_session_date,
-
-        -- V1: conservative start-match parsing
-        CASE
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}/[0-9]{1,2}/[0-9]{4})', 1), 'd/M/yyyy')))
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}/[0-9]{1,2}/[0-9]{2}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}/[0-9]{1,2}/[0-9]{2})', 1), 'd/M/yy')))
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4})', 1), 'd.M.yyyy')))
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2})', 1), 'd.M.yy')))
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}-[0-9]{1,2}-[0-9]{4})', 1), 'd-M-yyyy')))
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2}-[0-9]{1,2}-[0-9]{2}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2}-[0-9]{1,2}-[0-9]{2})', 1), 'd-M-yy')))
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]{3} [0-9]{4}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]{3} [0-9]{4})', 1), 'd MMM yyyy')))
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]{3} [0-9]{2}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]{3} [0-9]{2})', 1), 'd MMM yy')))
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]+ [0-9]{4}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]+ [0-9]{4})', 1), 'd MMMM yyyy')))
-
-            WHEN clean_session_date RLIKE '^[0-9]{1,2} [A-Za-z]+ [0-9]{2}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([0-9]{1,2} [A-Za-z]+ [0-9]{2})', 1), 'd MMMM yy')))
-
-            WHEN clean_session_date RLIKE '^[A-Za-z]{3} [0-9]{1,2} [0-9]{4}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([A-Za-z]{3} [0-9]{1,2} [0-9]{4})', 1), 'MMM d yyyy')))
-
-            WHEN clean_session_date RLIKE '^[A-Za-z]+ [0-9]{1,2} [0-9]{4}.*$'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '^([A-Za-z]+ [0-9]{1,2} [0-9]{4})', 1), 'MMMM d yyyy')))
-
-            ELSE NULL
-        END AS v1_parsed_date,
-
-        -- V2 fallback: extract date from anywhere in free text
-        CASE
-            WHEN clean_session_date RLIKE '[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([0-9]{1,2}/[0-9]{1,2}/[0-9]{4})', 1), 'd/M/yyyy')))
-
-            WHEN clean_session_date RLIKE '[0-9]{1,2}/[0-9]{1,2}/[0-9]{2}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([0-9]{1,2}/[0-9]{1,2}/[0-9]{2})', 1), 'd/M/yy')))
-
-            WHEN clean_session_date RLIKE '[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4})', 1), 'd.M.yyyy')))
-
-            WHEN clean_session_date RLIKE '[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2})', 1), 'd.M.yy')))
-
-            WHEN clean_session_date RLIKE '[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([0-9]{1,2}-[0-9]{1,2}-[0-9]{4})', 1), 'd-M-yyyy')))
-
-            WHEN clean_session_date RLIKE '[0-9]{1,2}-[0-9]{1,2}-[0-9]{2}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([0-9]{1,2}-[0-9]{1,2}-[0-9]{2})', 1), 'd-M-yy')))
-
-            WHEN clean_session_date RLIKE '[0-9]{1,2} [A-Za-z]{3} [0-9]{4}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([0-9]{1,2} [A-Za-z]{3} [0-9]{4})', 1), 'd MMM yyyy')))
-
-            WHEN clean_session_date RLIKE '[0-9]{1,2} [A-Za-z]{3} [0-9]{2}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([0-9]{1,2} [A-Za-z]{3} [0-9]{2})', 1), 'd MMM yy')))
-
-            WHEN clean_session_date RLIKE '[0-9]{1,2} [A-Za-z]+ [0-9]{4}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([0-9]{1,2} [A-Za-z]+ [0-9]{4})', 1), 'd MMMM yyyy')))
-
-            WHEN clean_session_date RLIKE '[0-9]{1,2} [A-Za-z]+ [0-9]{2}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([0-9]{1,2} [A-Za-z]+ [0-9]{2})', 1), 'd MMMM yy')))
-
-            WHEN clean_session_date RLIKE '[A-Za-z]{3} [0-9]{1,2} [0-9]{4}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([A-Za-z]{3} [0-9]{1,2} [0-9]{4})', 1), 'MMM d yyyy')))
-
-            WHEN clean_session_date RLIKE '[A-Za-z]+ [0-9]{1,2} [0-9]{4}'
-                THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(REGEXP_EXTRACT(clean_session_date, '([A-Za-z]+ [0-9]{1,2} [0-9]{4})', 1), 'MMMM d yyyy')))
-
-            ELSE NULL
-        END AS v2_fallback_parsed_date
-
-    FROM cleaned
-)
-
-SELECT
-    activity_header_id,
-    group_id,
-    group_desc,
-    raw_session_date,
-    clean_session_date,
-
-    COALESCE(v1_parsed_date, v2_fallback_parsed_date) AS parsed_form_ans_date
-
-FROM parsed;
+-- Parses WIP free-text Session Date / Call Date values into form_ans_date.
+-- Uses start-match parsing first, with fallback parsing only when the initial parse returns null.
+-- -EVE-Retains source future/historic dates for later DQ review rather than nulling them in this mapping
 
 
 
 
+Implemented WIP form_ans_date parsing logic for Session Date / Call Date answers.
 
+Created a temporary parsed date lookup table:
 
+temp_wip_form_answer_parsed_date_lookup
 
-%%sql
+This lookup parses free-text WIP date answers into parsed_form_ans_date. The logic first uses the existing start-of-text date parsing, then applies fallback parsing only when the first parse returns null. This keeps existing valid parsed dates unchanged while also handling valid dates found later in free-text values.
 
-SELECT
-    COUNT(*) AS total_rows,
-    COUNT(parsed_form_ans_date) AS parsed_rows,
-    COUNT(*) - COUNT(parsed_form_ans_date) AS not_parsed_rows
-FROM temp_wip_form_answer_parsed_date_lookup;
+Added Spark write configuration to allow old/future source dates to be written without the notebook failing.
 
+Validation completed:
 
+total_rows = 228403
+parsed_rows = 224979
+not_parsed_rows = 3424
 
+Remaining unparsed values are mainly non-date text or partial dates without a year, for example cancellation/review text or values like 29 Nov, 17 Aug, etc. These cannot be reliably parsed without assuming a year.
 
-
-%%sql
-
-SELECT
-    raw_session_date,
-    clean_session_date,
-    COUNT(*) AS row_count
-FROM temp_wip_form_answer_parsed_date_lookup
-WHERE parsed_form_ans_date IS NULL
-GROUP BY
-    raw_session_date,
-    clean_session_date
-ORDER BY row_count DESC
-LIMIT 100;
-
-
-
-
-%%sql
-
-SELECT
-    raw_session_date,
-    clean_session_date,
-    parsed_form_ans_date
-FROM temp_wip_form_answer_parsed_date_lookup
-WHERE raw_session_date IN (
-    '03/12/2021',
-    '30/04/2022',
-    '25/11/2022',
-    '01.08.2205',
-    'see 17/3/22'
-)
-LIMIT 100;
+As confirmed with Eve, future/historic source dates should be retained as parsed values for now. DQ rules will be added later to flag dates that are in the future or before the agreed valid date threshold, so they can be reviewed and corrected at source.
