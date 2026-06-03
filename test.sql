@@ -21,8 +21,25 @@ ORDER BY raw_session_date;
 
 -------
 
+%%sql
 
+SELECT
+    raw_session_date,
+    clean_session_date,
+    extracted_date_text,
+    parse_rule,
+    parsed_form_ans_date
+FROM temp_wip_form_answer_parsed_date_lookup
+WHERE LOWER(raw_session_date) LIKE '%17/3/22%'
+   OR raw_session_date IN (
+        '03/12/2021',
+        '30/04/2022',
+        '25/11/2022',
+        '01.08.2205'
+   )
+LIMIT 100;
 
+----------
 
 %%sql
 
@@ -45,7 +62,7 @@ WITH cleaned AS (
                     ),
                     '([0-9]{1,2})(st|nd|rd|th)\\b', '$1'
                 ),
-                '\\bSept\\.?\\b', 'Sep'
+                'Sept\\.?', 'Sep'
             )
         ) AS clean_session_date
 
@@ -61,63 +78,63 @@ extracted AS (
         clean_session_date,
 
         CASE
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([0-9]{1,2}/[0-9]{1,2}/[0-9]{4})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}/[0-9]{1,2}/[0-9]{4})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([0-9]{1,2}/[0-9]{1,2}/[0-9]{4})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}/[0-9]{1,2}/[0-9]{2}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([0-9]{1,2}/[0-9]{1,2}/[0-9]{2})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}/[0-9]{1,2}/[0-9]{2})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([0-9]{1,2}/[0-9]{1,2}/[0-9]{2})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([0-9]{1,2}-[0-9]{1,2}-[0-9]{4})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}-[0-9]{1,2}-[0-9]{4})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([0-9]{1,2}-[0-9]{1,2}-[0-9]{4})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}-[0-9]{1,2}-[0-9]{2}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([0-9]{1,2}-[0-9]{1,2}-[0-9]{2})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}-[0-9]{1,2}-[0-9]{2})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([0-9]{1,2}-[0-9]{1,2}-[0-9]{2})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2} [A-Za-z]{3} [0-9]{4}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([0-9]{1,2} [A-Za-z]{3} [0-9]{4})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]{3} [0-9]{4})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]{3} [0-9]{4})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2} [A-Za-z]{3} [0-9]{2}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([0-9]{1,2} [A-Za-z]{3} [0-9]{2})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]{3} [0-9]{2})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]{3} [0-9]{2})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2} [A-Za-z]+ [0-9]{4}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([0-9]{1,2} [A-Za-z]+ [0-9]{4})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]+ [0-9]{4})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]+ [0-9]{4})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2} [A-Za-z]+ [0-9]{2}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([0-9]{1,2} [A-Za-z]+ [0-9]{2})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]+ [0-9]{2})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]+ [0-9]{2})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[A-Za-z]{3} [0-9]{1,2} [0-9]{4}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([A-Za-z]{3} [0-9]{1,2} [0-9]{4})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([A-Za-z]{3} [0-9]{1,2} [0-9]{4})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([A-Za-z]{3} [0-9]{1,2} [0-9]{4})([^0-9A-Za-z]|$)', 2)
 
-            WHEN clean_session_date RLIKE '\\b[A-Za-z]+ [0-9]{1,2} [0-9]{4}\\b'
-                THEN REGEXP_EXTRACT(clean_session_date, '\\b([A-Za-z]+ [0-9]{1,2} [0-9]{4})\\b', 1)
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([A-Za-z]+ [0-9]{1,2} [0-9]{4})([^0-9A-Za-z]|$)'
+                THEN REGEXP_EXTRACT(clean_session_date, '(^|[^0-9A-Za-z])([A-Za-z]+ [0-9]{1,2} [0-9]{4})([^0-9A-Za-z]|$)', 2)
 
             ELSE NULL
         END AS extracted_date_text,
 
         CASE
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\\b' THEN 'slash_d_M_yyyy'
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}/[0-9]{1,2}/[0-9]{2}\\b' THEN 'slash_d_M_yy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}/[0-9]{1,2}/[0-9]{4})([^0-9A-Za-z]|$)' THEN 'slash_d_M_yyyy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}/[0-9]{1,2}/[0-9]{2})([^0-9A-Za-z]|$)' THEN 'slash_d_M_yy'
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4}\\b' THEN 'dot_d_M_yyyy'
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2}\\b' THEN 'dot_d_M_yy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{4})([^0-9A-Za-z]|$)' THEN 'dot_d_M_yyyy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{2})([^0-9A-Za-z]|$)' THEN 'dot_d_M_yy'
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}\\b' THEN 'dash_d_M_yyyy'
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2}-[0-9]{1,2}-[0-9]{2}\\b' THEN 'dash_d_M_yy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}-[0-9]{1,2}-[0-9]{4})([^0-9A-Za-z]|$)' THEN 'dash_d_M_yyyy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2}-[0-9]{1,2}-[0-9]{2})([^0-9A-Za-z]|$)' THEN 'dash_d_M_yy'
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2} [A-Za-z]{3} [0-9]{4}\\b' THEN 'day_shortmonth_yyyy'
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2} [A-Za-z]{3} [0-9]{2}\\b' THEN 'day_shortmonth_yy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]{3} [0-9]{4})([^0-9A-Za-z]|$)' THEN 'day_shortmonth_yyyy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]{3} [0-9]{2})([^0-9A-Za-z]|$)' THEN 'day_shortmonth_yy'
 
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2} [A-Za-z]+ [0-9]{4}\\b' THEN 'day_longmonth_yyyy'
-            WHEN clean_session_date RLIKE '\\b[0-9]{1,2} [A-Za-z]+ [0-9]{2}\\b' THEN 'day_longmonth_yy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]+ [0-9]{4})([^0-9A-Za-z]|$)' THEN 'day_longmonth_yyyy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([0-9]{1,2} [A-Za-z]+ [0-9]{2})([^0-9A-Za-z]|$)' THEN 'day_longmonth_yy'
 
-            WHEN clean_session_date RLIKE '\\b[A-Za-z]{3} [0-9]{1,2} [0-9]{4}\\b' THEN 'shortmonth_day_yyyy'
-            WHEN clean_session_date RLIKE '\\b[A-Za-z]+ [0-9]{1,2} [0-9]{4}\\b' THEN 'longmonth_day_yyyy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([A-Za-z]{3} [0-9]{1,2} [0-9]{4})([^0-9A-Za-z]|$)' THEN 'shortmonth_day_yyyy'
+            WHEN clean_session_date RLIKE '(^|[^0-9A-Za-z])([A-Za-z]+ [0-9]{1,2} [0-9]{4})([^0-9A-Za-z]|$)' THEN 'longmonth_day_yyyy'
 
             ELSE 'not_matched'
         END AS parse_rule
@@ -135,41 +152,23 @@ SELECT
     parse_rule,
 
     CASE
-        WHEN parse_rule = 'slash_d_M_yyyy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd/M/yyyy')))
+        WHEN parse_rule = 'slash_d_M_yyyy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd/M/yyyy')))
+        WHEN parse_rule = 'slash_d_M_yy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd/M/yy')))
 
-        WHEN parse_rule = 'slash_d_M_yy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd/M/yy')))
+        WHEN parse_rule = 'dot_d_M_yyyy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd.M.yyyy')))
+        WHEN parse_rule = 'dot_d_M_yy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd.M.yy')))
 
-        WHEN parse_rule = 'dot_d_M_yyyy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd.M.yyyy')))
+        WHEN parse_rule = 'dash_d_M_yyyy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd-M-yyyy')))
+        WHEN parse_rule = 'dash_d_M_yy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd-M-yy')))
 
-        WHEN parse_rule = 'dot_d_M_yy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd.M.yy')))
+        WHEN parse_rule = 'day_shortmonth_yyyy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd MMM yyyy')))
+        WHEN parse_rule = 'day_shortmonth_yy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd MMM yy')))
 
-        WHEN parse_rule = 'dash_d_M_yyyy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd-M-yyyy')))
+        WHEN parse_rule = 'day_longmonth_yyyy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd MMMM yyyy')))
+        WHEN parse_rule = 'day_longmonth_yy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd MMMM yy')))
 
-        WHEN parse_rule = 'dash_d_M_yy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd-M-yy')))
-
-        WHEN parse_rule = 'day_shortmonth_yyyy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd MMM yyyy')))
-
-        WHEN parse_rule = 'day_shortmonth_yy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd MMM yy')))
-
-        WHEN parse_rule = 'day_longmonth_yyyy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd MMMM yyyy')))
-
-        WHEN parse_rule = 'day_longmonth_yy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'd MMMM yy')))
-
-        WHEN parse_rule = 'shortmonth_day_yyyy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'MMM d yyyy')))
-
-        WHEN parse_rule = 'longmonth_day_yyyy'
-            THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'MMMM d yyyy')))
+        WHEN parse_rule = 'shortmonth_day_yyyy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'MMM d yyyy')))
+        WHEN parse_rule = 'longmonth_day_yyyy' THEN TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(extracted_date_text, 'MMMM d yyyy')))
 
         ELSE NULL
     END AS parsed_form_ans_date
