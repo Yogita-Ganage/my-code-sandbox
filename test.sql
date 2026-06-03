@@ -34,3 +34,12 @@ not_parsed_rows = 3424
 Remaining unparsed values are mainly non-date text or partial dates without a year, for example cancellation/review text or values like 29 Nov, 17 Aug, etc. These cannot be reliably parsed without assuming a year.
 
 As confirmed with Eve, future/historic source dates should be retained as parsed values for now. DQ rules will be added later to flag dates that are in the future or before the agreed valid date threshold, so they can be reviewed and corrected at source.
+
+
+
+
+### Date lookup table - WIP
+
+- Creates a WIP date lookup from **Session Date** / **Call Date** answers.
+- Keeps only one clear date value per activity/group, so the final join does not create duplicate rows.
+- Records with multiple different date values are left out for DQ/source review.
