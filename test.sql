@@ -10,11 +10,13 @@ test
 
 Updated MPB form answer datetime mapping as per the clinical scores definition.
 
-Source column `ar.created_at` from `silver_drj_assessment_results` is available in UTC timestamp format, e.g. `2022-09-01T01:11:29.727Z`.
+Updated MPB form answer date/time logic using `ar.created_at` from `silver_drj_assessment_results`.
+
+The source value is available in UTC datetime format, e.g. `2022-09-01T01:11:29.727Z`.
 
 Implemented:
-- `form_ans_time_id`: extracted only the time component from `created_at` and cast it back to timestamp for TimeDim/time_id alignment.
-- `form_ans_date_time`: populated using full `created_at` timestamp.
-- `form_ans_date`: extracted date from `created_at`.
+- `form_ans_time_id`: extracts only the time component from `created_at` and casts it back to timestamp for TimeDim/time_id alignment.
+- `form_ans_date_time`: uses the full `created_at` timestamp.
+- `form_ans_date`: extracts the date part from `created_at`.
 
-Validated the output for MPB records to confirm date, datetime, and time_id fields are populated as expected.
+Note: Since `form_ans_time_id` is cast back to timestamp after extracting only the time component, Spark adds the default epoch date (`1970-01-01`) with the correct source time value.
