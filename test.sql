@@ -1,46 +1,15 @@
-%%sql
+Implemented WIP form_ans_form_ques_id logic in PROD and copied the same code back to DEV.
 
-DROP TABLE IF EXISTS test_wip_form_answer_form_ques_id;
+Updated WIP Form Answer logic to populate form_ans_form_ques_id from silver_rdm_form_question.form_ques_id instead of using the old source-based CONCAT value.
 
-CREATE TABLE test_wip_form_answer_form_ques_id AS
-SELECT
-    999 AS form_ans_id,
-    rdmfq.form_ques_id AS form_ans_form_ques_id,
-    CONCAT('WIP001', ah.file_number) AS form_ans_care_epi_id,
-    s.src_answer_desc AS form_ans_src_answer,
-    s.choice_desc AS form_ans_multi_answer_flag,
-    'WIP001' AS z_src_system_instance,
-    'WIP' AS z_src_system_id
-FROM temp_silver_wip_activityheader_statistics s
-LEFT JOIN silver_wip_activityheader ah ON ah.id = s.activity_header_id
-LEFT JOIN silver_wip_servicetype ty ON ah.service_type_id = ty.id
-LEFT JOIN silver_rdm_form_question rdmfq ON TRIM(LOWER(rdmfq.form_ques_src_id)) = TRIM(LOWER(CONCAT('WIP001_', CAST(ty.id AS STRING), '_', CAST(s.group_id AS STRING), '_', CAST(s.type_id AS STRING))));
+Join logic now uses the same source ID pattern created in the RDM add code:
+WIP001_<service_type_id>_<statistical_group_id>_<statistical_type_id>
 
+Validation completed in PROD:
+- Created a temporary test table using the updated WIP logic.
+- Confirmed form_ans_form_ques_id is populated from silver_rdm_form_question.
+- Checked total rows vs matched/null form question ID rows.
+- Logic is working correctly in PROD.
 
-
-%%sql
-
-SELECT
-    COUNT(*) AS total_rows,
-    COUNT(form_ans_form_ques_id) AS populated_form_ans_form_ques_id_rows,
-    COUNT(*) - COUNT(form_ans_form_ques_id) AS null_form_ans_form_ques_id_rows
-FROM test_wip_form_answer_form_ques_id;
-
-
-%%sql
-
-SELECT
-    form_ans_id,
-    form_ans_form_ques_id,
-    form_ans_care_epi_id,
-    form_ans_src_answer,
-    form_ans_multi_answer_flag,
-    z_src_system_instance,
-    z_src_system_id
-FROM test_wip_form_answer_form_ques_id
-LIMIT 100;
-
-
-%%sql
-
-DROP TABLE IF EXISTS test_wip_form_answer_form_ques_id;
+Note:
+The same code has been copied back to DEV. DEV does not currently return all values due to DEV data/RDM availability differences, but the logic has been validated successfully against PROD data.
