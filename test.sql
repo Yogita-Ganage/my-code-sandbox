@@ -1,4 +1,14 @@
 SELECT
+    form_ques_src_id,
+    COUNT(*) AS row_count
+FROM silver_rdm_form_question
+GROUP BY form_ques_src_id
+HAVING COUNT(*) > 1;
+
+
+
+
+SELECT
     ar.id AS assessment_result_id,
     ar.assessment_id,
     asmt.id AS assessment_table_id,
