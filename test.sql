@@ -1,10 +1,27 @@
-Updated MPB assessment answer logic for form_ans_form_ques_id.
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(rdmfq.form_ques_id) AS matched_rdm_form_question_rows,
+    COUNT(*) - COUNT(rdmfq.form_ques_id) AS unmatched_rdm_form_question_rows
+FROM temp_silver_wip_activityheader_statistics s
 
-The existing source-based value was replaced with the RDM Form Question primary key. 
-Joined silver_form_answer MPB assessment results to silver_rdm_form_question using the same source ID logic created in the RDM add table: MPB001_<assessment_id>.
+LEFT JOIN silver_wip_activityheader ah
+    ON ah.id = s.activity_header_id
 
-Validation completed:
-- assessment_results.assessment_id successfully maps to silver_drj_assessments.id
-- form_ques_src_id is unique in silver_rdm_form_question
-- RDM join returns expected form_ques_id values
-- Repeated form_ans_form_ques_id values are expected because multiple answers can link to the same form question
+LEFT JOIN silver_wip_servicetype ty
+    ON ah.service_type_id = ty.id
+
+LEFT JOIN silver_rdm_form_question rdmfq
+    ON TRIM(LOWER(rdmfq.form_ques_src_id)) =
+       TRIM(LOWER(CONCAT(
+           'WIP001_',
+           CAST(ty.id AS STRING),
+           '_',
+           CAST(s.group_id AS STRING),
+           '_',
+           CAST(s.type_id AS STRING)
+       )));
+
+
+
+
+
