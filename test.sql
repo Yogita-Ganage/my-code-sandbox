@@ -1,35 +1,9 @@
-SELECT
-    asmq.type,
-    asmq.maximum_selection,
-    COUNT(*) AS record_count
-FROM silver_drj_assessment_result_for_answers arans
-LEFT JOIN silver_drj_assessment_answers asmans
-    ON asmans.id = arans.assessment_answer_id
-LEFT JOIN silver_drj_assessment_questions asmq
-    ON asmq.id = asmans.assessment_question_id
-GROUP BY
-    asmq.type,
-    asmq.maximum_selection
-ORDER BY
-    asmq.type,
-    asmq.maximum_selection;
+,CASE
+    WHEN COALESCE(asmq.maximum_selection, 1) > 1 THEN True
+    ELSE False
+END AS form_ans_multi_answer_flag
 
 
 
 
-SELECT
-    CASE
-        WHEN COALESCE(asmq.maximum_selection, 1) > 1 THEN 'Multi selection allowed'
-        ELSE 'Single selection/score'
-    END AS multi_answer_check,
-    COUNT(*) AS record_count
-FROM silver_drj_assessment_result_for_answers arans
-LEFT JOIN silver_drj_assessment_answers asmans
-    ON asmans.id = arans.assessment_answer_id
-LEFT JOIN silver_drj_assessment_questions asmq
-    ON asmq.id = asmans.assessment_question_id
-GROUP BY
-    CASE
-        WHEN COALESCE(asmq.maximum_selection, 1) > 1 THEN 'Multi selection allowed'
-        ELSE 'Single selection/score'
-    END;
+For MPB, `form_ans_multi_answer_flag` has been derived from the assessment question structure instead of hardcoding the value. The source does not provide a direct flag, so `maximum_selection > 1` is used to identify questions that allow multiple selections. Validation showed both single-answer and multi-selection records in MPB, so the flag is now populated as True/False based on this rule.
