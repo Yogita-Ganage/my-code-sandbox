@@ -1,1 +1,1 @@
-Previously, `form_ans_multi_answer_flag` was populated from `asmq.type`. During validation, this field was found to contain question type values such as `radio`, `checkbox`, `text`, and `textbox`, rather than a boolean multi-answer indicator. The logic has therefore been updated to derive the flag from `asmq.maximum_selection`, where values greater than 1 are marked as `True`; otherwise the flag is set to `False`.
+test
