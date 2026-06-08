@@ -1,21 +1,35 @@
-test
+SELECT
+    asmq.type,
+    asmq.maximum_selection,
+    COUNT(*) AS record_count
+FROM silver_drj_assessment_result_for_answers arans
+LEFT JOIN silver_drj_assessment_answers asmans
+    ON asmans.id = arans.assessment_answer_id
+LEFT JOIN silver_drj_assessment_questions asmq
+    ON asmq.id = asmans.assessment_question_id
+GROUP BY
+    asmq.type,
+    asmq.maximum_selection
+ORDER BY
+    asmq.type,
+    asmq.maximum_selection;
+
+
+
 
 SELECT
-    ar.id AS assessment_result_id,
-    aq.id AS assessment_question_id,
-    aq.question,
-    COUNT(*) AS answer_row_count,
-    COUNT(DISTINCT aa.id) AS distinct_answer_count
-FROM silver_drj_assessment_result_for_answers arfa
-JOIN silver_drj_assessment_answers aa
-    ON arfa.answer_id = aa.id
-JOIN silver_drj_assessment_results ar
-    ON arfa.assessment_result_id = ar.id
-JOIN silver_drj_assessment_questions aq
-    ON aa.question_id = aq.id
+    CASE
+        WHEN COALESCE(asmq.maximum_selection, 1) > 1 THEN 'Multi selection allowed'
+        ELSE 'Single selection/score'
+    END AS multi_answer_check,
+    COUNT(*) AS record_count
+FROM silver_drj_assessment_result_for_answers arans
+LEFT JOIN silver_drj_assessment_answers asmans
+    ON asmans.id = arans.assessment_answer_id
+LEFT JOIN silver_drj_assessment_questions asmq
+    ON asmq.id = asmans.assessment_question_id
 GROUP BY
-    ar.id,
-    aq.id,
-    aq.question
-HAVING COUNT(*) > 1
-ORDER BY answer_row_count DESC;
+    CASE
+        WHEN COALESCE(asmq.maximum_selection, 1) > 1 THEN 'Multi selection allowed'
+        ELSE 'Single selection/score'
+    END;
