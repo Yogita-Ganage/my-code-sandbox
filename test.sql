@@ -25,6 +25,7 @@ WITH s1_base AS (
                 '_',
                 CAST(br.form_ans_bridge_id AS STRING)
             )))
+
     WHERE sc.id_appointment IS NOT NULL
       AND sc.id_appointment <> -1
 ),
@@ -37,16 +38,19 @@ answer_counts AS (
     GROUP BY
         ques_id,
         session_id
+    HAVING COUNT(*) > 1
 )
 SELECT
-    CASE
-        WHEN answer_count > 1 THEN 'Multi answer'
-        ELSE 'Single answer'
-    END AS answer_pattern,
-    COUNT(*) AS record_count
-FROM answer_counts
-GROUP BY
-    CASE
-        WHEN answer_count > 1 THEN 'Multi answer'
-        ELSE 'Single answer'
-    END;
+    b.ques_id,
+    b.session_id,
+    c.answer_count,
+    b.answer_value
+FROM s1_base b
+JOIN answer_counts c
+    ON b.ques_id = c.ques_id
+    AND b.session_id = c.session_id
+ORDER BY
+    c.answer_count DESC,
+    b.ques_id,
+    b.session_id
+LIMIT 50;
