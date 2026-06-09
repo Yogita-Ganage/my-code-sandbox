@@ -1,3 +1,11 @@
-Hi, for S1 form_ans_multi_answer_flag, I reviewed the definition and current source structure. The source does not provide a direct multi-answer flag, so we are deriving it based on the definition: if the count of answers for the same form_ques_id and session id is greater than 1, then the flag is set to True, otherwise False.
+Hi Eve, thanks, that makes sense.
 
-During validation, I noticed some S1 records have placeholder/invalid appointment ids like NULL and -1. The -1 is coming from silver_sone_srcode.id_appointment, which is currently used to derive form_ans_session_id as CONCAT('SONE', sc.id_appointment). Because -1 does not look like a valid session/appointment id, I am excluding NULL and -1 from the multi-answer count logic and treating those as False. Could you please confirm this approach is okay?
+With the approach I was suggesting, records where id_appointment is NULL or -1 would not be returned as NULL. They would be set to False / 0.
+
+The multi-answer count logic would only be applied where there is a valid appointment id. So:
+
+valid appointment id + same question/session count > 1 = True / 1
+valid appointment id + count = 1 = False / 0
+NULL or -1 appointment id = False / 0
+
+I agree that trying to derive this using same question id and same day may be too loose, so I’ll keep the logic based on valid session/appointment id only.
