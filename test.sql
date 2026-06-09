@@ -23,16 +23,22 @@ answer_counts AS (
         activity_header_id,
         group_id,
         type_id
+    HAVING COUNT(*) > 1
 )
 SELECT
-    CASE
-        WHEN answer_count > 1 THEN 'Multi answer'
-        ELSE 'Single answer'
-    END AS answer_pattern,
-    COUNT(*) AS record_count
-FROM answer_counts
-GROUP BY
-    CASE
-        WHEN answer_count > 1 THEN 'Multi answer'
-        ELSE 'Single answer'
-    END;
+    b.activity_header_id,
+    b.group_desc,
+    b.type_desc,
+    c.answer_count,
+    b.src_answer_desc
+FROM wip_base b
+JOIN answer_counts c
+    ON b.activity_header_id = c.activity_header_id
+    AND b.group_id = c.group_id
+    AND b.type_id = c.type_id
+ORDER BY
+    c.answer_count DESC,
+    b.activity_header_id,
+    b.group_desc,
+    b.type_desc
+LIMIT 50;
