@@ -1,5 +1,10 @@
--- MPB clinical scores are care-episode scoped; no direct session link, so keep session_id null.
-CAST(NULL AS STRING) AS form_ans_session_id
+Updated MPB `form_ans_date_time` logic using `ar.created_at` from `silver_drj_assessment_results`.
 
+The source value is available in UTC datetime format, e.g. `2022-09-01T01:11:29.727Z`.
 
-Although SESSION records exist for MPB, the MPB clinical score/questionnaire records are not directly session-scoped. The attribute definition says to use the session id only when it is available from the source and can be validated against the same care episode. For these MPB records, the legacy date-window match was only an inferred link, and Eve confirmed they should remain care-episode scoped. Therefore form_ans_session_id is set to NULL.
+Implemented `form_ans_date_time` using the full `created_at` timestamp as per the clinical scores definition.
+
+Logic:
+`TO_TIMESTAMP(ar.created_at, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") AS form_ans_date_time`
+
+Validated MPB output to confirm `form_ans_date_time` is populated with both date and time from the source timestamp.
