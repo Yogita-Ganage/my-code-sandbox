@@ -1,23 +1,17 @@
 SELECT
     ah.file_number,
-    ae.id AS activity_entry_id,
     ae.activity_date_time,
-
     asv.is_primary,
-    ah.service_type_id,
-    asv.service_id,
-    ae.activity_type_id,
-
     ast.description AS service_type,
     srv.description AS service_activity,
     atp.description AS activity_type,
 
     CONCAT(ast.description, '_', srv.description, '_', atp.description) AS expected_cprod_name,
+    CONCAT('WIP001_', CONCAT(ast.description, '_', srv.description, '_', atp.description)) AS expected_cprod_src_id,
 
-    CASE WHEN asv.is_primary = true THEN 1 ELSE 0 END AS passes_primary_filter,
-    CASE WHEN ah.service_type_id IS NOT NULL THEN 1 ELSE 0 END AS has_service_type,
-    CASE WHEN asv.service_id IS NOT NULL THEN 1 ELSE 0 END AS has_service,
-    CASE WHEN ae.activity_type_id IS NOT NULL THEN 1 ELSE 0 END AS has_activity_type
+    cp.cprod_id AS existing_cprod_id,
+    cp.cprod_src_name,
+    cp.cprod_src_id
 
 FROM silver_wip_activityentry ae
 
@@ -35,6 +29,11 @@ LEFT JOIN silver_wip_service srv
 
 LEFT JOIN silver_wip_activitytype atp
     ON ae.activity_type_id = atp.id
+
+LEFT JOIN silver_rdm_care_product cp
+    ON LOWER(TRIM(cp.cprod_src_id)) =
+       LOWER(TRIM(CONCAT('WIP001_', CONCAT(ast.description, '_', srv.description, '_', atp.description))))
+   AND cp.cprod_src_sys_inst_id = 'WIP001'
 
 WHERE TRIM(CAST(ah.file_number AS STRING)) IN ('451027', '306826')
 
