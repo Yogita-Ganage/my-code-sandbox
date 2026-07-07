@@ -1,40 +1,7 @@
-SELECT
-    ah.file_number,
-    ae.activity_date_time,
-    asv.is_primary,
-    ast.description AS service_type,
-    srv.description AS service_activity,
-    atp.description AS activity_type,
+Investigated cprod_src_name / session_cprod_id for WIP.
 
-    CONCAT(ast.description, '_', srv.description, '_', atp.description) AS expected_cprod_name,
-    CONCAT('WIP001_', CONCAT(ast.description, '_', srv.description, '_', atp.description)) AS expected_cprod_src_id,
+The required source values are available in the WIP source tables, but the UAT example rows have asv.is_primary = false. The existing Care Product ADD logic filters only asv.is_primary = true, so these care product combinations were excluded from the RDM ADD output.
 
-    cp.cprod_id AS existing_cprod_id,
-    cp.cprod_src_name,
-    cp.cprod_src_id
+Tested by removing the asv.is_primary filter in a test ADD table. WIP care product combinations increased from 331 to 773 with no blank cprod_name or cprod_src_id values. The UAT examples are now included in the ADD output.
 
-FROM silver_wip_activityentry ae
-
-LEFT JOIN silver_wip_activityheader ah
-    ON ae.activity_header_id = ah.id
-
-LEFT JOIN silver_wip_activityservice asv
-    ON ae.activity_service_id = asv.id
-
-LEFT JOIN silver_wip_servicetype ast
-    ON ah.service_type_id = ast.id
-
-LEFT JOIN silver_wip_service srv
-    ON asv.service_id = srv.id
-
-LEFT JOIN silver_wip_activitytype atp
-    ON ae.activity_type_id = atp.id
-
-LEFT JOIN silver_rdm_care_product cp
-    ON LOWER(TRIM(cp.cprod_src_id)) =
-       LOWER(TRIM(CONCAT('WIP001_', CONCAT(ast.description, '_', srv.description, '_', atp.description))))
-   AND cp.cprod_src_sys_inst_id = 'WIP001'
-
-WHERE TRIM(CAST(ah.file_number AS STRING)) IN ('451027', '306826')
-
-ORDER BY ah.file_number, ae.activity_date_time;
+Next change: remove the asv.is_primary = true filter from the WIP Care Product ADD logic. End-to-end session_cprod_id validation will be pending until the new RDM values are pushed through SharePoint/Dataflow.
