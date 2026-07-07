@@ -1,15 +1,30 @@
 SELECT
-    st.description,
-    LOWER(TRIM(st.description)) AS cleaned_status,
-    COUNT(*) AS row_count
+    ws.description,
+    LOWER(TRIM(ws.description)) AS cleaned_description,
+    COUNT(*) AS row_count,
+    COUNT(DISTINCT ae.activity_header_id) AS activity_header_count
 FROM silver_wip_activityentry ae
-LEFT JOIN silver_wip_activitystatus st
-    ON ae.activity_status_id = st.id
-WHERE LOWER(TRIM(st.description)) LIKE '%error%'
-   OR LOWER(TRIM(st.description)) LIKE '%raised%'
-   OR LOWER(TRIM(st.description)) LIKE '%cancel%'
-   OR LOWER(TRIM(st.description)) LIKE '%fail%'
+LEFT JOIN silver_wip_service ws
+    ON ae.activity_service_id = ws.id
+WHERE LOWER(TRIM(ws.description)) LIKE '%error%'
+   OR LOWER(TRIM(ws.description)) LIKE '%raised%'
+   OR LOWER(TRIM(ws.description)) LIKE '%bnssg%'
 GROUP BY
-    st.description,
-    LOWER(TRIM(st.description))
-ORDER BY st.description;
+    ws.description,
+    LOWER(TRIM(ws.description))
+ORDER BY
+    ws.description;
+
+
+
+SELECT DISTINCT
+    ws.description,
+    LOWER(TRIM(ws.description)) AS cleaned_description
+FROM silver_wip_activityentry ae
+LEFT JOIN silver_wip_service ws
+    ON ae.activity_service_id = ws.id
+WHERE LOWER(TRIM(ws.description)) LIKE '%error%'
+   OR LOWER(TRIM(ws.description)) LIKE '%raised%'
+   OR LOWER(TRIM(ws.description)) LIKE '%bnssg%'
+ORDER BY
+    ws.description;
