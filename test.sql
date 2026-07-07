@@ -50,3 +50,22 @@ WHERE LOWER(cprod_name) LIKE '%bereaved emotional support%'
    OR LOWER(cprod_name) LIKE '%repeat call%'
    OR LOWER(cprod_name) LIKE '%assessment%'
 ORDER BY cprod_name;
+
+
+
+
+
+
+SELECT
+    a.cprod_name,
+    a.cprod_src_id,
+    a.cprod_src_sys_inst_id,
+    r.cprod_id AS existing_cprod_id
+FROM silver_rdm_care_product_add_y a
+LEFT JOIN silver_rdm_care_product r
+    ON LOWER(TRIM(a.cprod_src_id)) = LOWER(TRIM(r.cprod_src_id))
+WHERE LOWER(a.cprod_name) LIKE '%bereaved emotional support%'
+   OR LOWER(a.cprod_name) LIKE '%emotional support%'
+   OR LOWER(a.cprod_name) LIKE '%repeat call%'
+   OR LOWER(a.cprod_name) LIKE '%assessment%'
+ORDER BY a.cprod_name;
