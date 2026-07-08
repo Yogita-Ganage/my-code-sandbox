@@ -1,2 +1,1 @@
-,to_timestamp(sra.date_start, 'dd MMM yyyy HH:mm:ss') AS session_start_date_time
-,to_timestamp(sra.date_end, 'dd MMM yyyy HH:mm:ss') AS session_end_date_time
+Investigated UAT failure for SystemOne session_start_date_time. The field was NULL for all SONE records because the mapping used CAST(sra.date_start AS TIMESTAMP), but the source date_start is in 'dd MMM yyyy HH:mm:ss' format. Updated the SONE mapping to use to_timestamp(sra.date_start, 'dd MMM yyyy HH:mm:ss') for session_start_date_time and the same parsing for session_end_date_time. Validated that the fields are now populated in silver_sessions in the expected timestamp format.
