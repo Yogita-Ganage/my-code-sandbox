@@ -1,11 +1,7 @@
-SELECT
-    CONCAT('SONE', sra.id_organisation, sra.id) AS src_session_id,
-    CONCAT('SONE', sra.id_organisation, sra.id_referral_in) AS session_care_epi_id,
-    CONCAT('SONE', sra.id_organisation, sra.id_patient) AS patient_id_from_appointment,
-    CONCAT('SONE', srri.id_organisation_source, srri.id_patient) AS patient_id_from_referral
-FROM silver_sone_srappointment sra
-LEFT JOIN silver_sone_srreferralin srri
-    ON sra.id_referral_in = srri.id
-   AND sra.id_organisation = srri.id_organisation_source
-WHERE CONCAT('SONE', sra.id_organisation, sra.id_patient)
-      <> CONCAT('SONE', srri.id_organisation_source, srri.id_patient);
+Validated the reported SONE session_patient_id examples against current silver_sessions and source SONE appointment/referral tables.
+
+Both reported sessions now return the expected patient ID: SONEG4B9E66173613.
+
+Also checked appointment vs referral patient ID mismatch for SONE and no mismatches were found in current source output.
+
+No code change required based on current validation. This appears to be stale UAT output / data before the latest refresh.
