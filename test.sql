@@ -1,7 +1,14 @@
-Validated the reported SONE session_patient_id examples against current silver_sessions and source SONE appointment/referral tables.
+SELECT
+    COUNT(*) AS total_rows,
+    SUM(CASE WHEN care_epi_number IS NULL OR TRIM(care_epi_number) = '' THEN 1 ELSE 0 END) AS blank_count,
+    SUM(CASE WHEN care_epi_number IS NOT NULL AND TRIM(care_epi_number) <> '' THEN 1 ELSE 0 END) AS populated_count
+FROM <>;
 
-Both reported sessions now return the expected patient ID: SONEG4B9E66173613.
 
-Also checked appointment vs referral patient ID mismatch for SONE and no mismatches were found in current source output.
 
-No code change required based on current validation. This appears to be stale UAT output / data before the latest refresh.
+SELECT
+    COUNT(*) AS total_rows,
+    SUM(CASE WHEN reference_id IS NULL THEN 1 ELSE 0 END) AS null_reference_id,
+    SUM(CASE WHEN episode_number IS NULL THEN 1 ELSE 0 END) AS null_episode_number
+FROM silver_drj_users
+WHERE profile_type = 'user';
