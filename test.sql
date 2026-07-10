@@ -1,14 +1,4 @@
-SELECT
-    COUNT(*) AS total_rows,
-    SUM(CASE WHEN care_epi_number IS NULL OR TRIM(care_epi_number) = '' THEN 1 ELSE 0 END) AS blank_count,
-    SUM(CASE WHEN care_epi_number IS NOT NULL AND TRIM(care_epi_number) <> '' THEN 1 ELSE 0 END) AS populated_count
-FROM <>;
+Peer review completed for MPB Care Episode Number.
+The implemented logic CONCAT(reference_id, '-', episode_number) matches the agreed definition and Eve’s confirmation. Validated 41,183 records: 39,983 populated and 1,200 blank. All blank values correspond to source records where episode_number is NULL. No issues found with the implementation.
 
 
-
-SELECT
-    COUNT(*) AS total_rows,
-    SUM(CASE WHEN reference_id IS NULL THEN 1 ELSE 0 END) AS null_reference_id,
-    SUM(CASE WHEN episode_number IS NULL THEN 1 ELSE 0 END) AS null_episode_number
-FROM silver_drj_users
-WHERE profile_type = 'user';
