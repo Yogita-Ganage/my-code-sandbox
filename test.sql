@@ -1,16 +1,14 @@
 SELECT
-    id AS referral_id,
-    id_organisation_source,
-    id_patient,
-    date_referral,
-    date_discharge
-FROM silver_sone_srreferralin
-WHERE id_organisation_source = 'G4B9E'
-  AND id IN (76346749, 76059032);
-
-
-
-  SELECT *
-FROM silver_sone_srpatient
-WHERE id_organisation_source = 'G4B9E'
-  AND id IN (66173613, 66164204);
+    care_epi_number,
+    care_epi_patient_id,
+    care_epi_referral_date,
+    care_epi_closure_date,
+    CASE
+        WHEN care_epi_patient_id = 'SONEG4B9E66173613'
+            THEN 'Correct'
+        ELSE 'Check'
+    END AS validation_result
+FROM silver_care_episode
+WHERE z_src_system_id = 'SONE'
+  AND care_epi_number IN ('76046740', '76050032')
+ORDER BY care_epi_number;
