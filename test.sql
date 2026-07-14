@@ -1,1 +1,27 @@
-Checked the UAT failed records in the current Silver Care Episode table. Both care episodes now return the same correct patient ID, SONEG4B9E66173613, as per the definition. The current logic is working correctly, so no code change is required. The previous result may have been based on stale data.
+SELECT
+    source_name,
+    source_id,
+    source_system_instance_id,
+    COUNT(*) AS record_count
+FROM silver_rdm_contracts_add
+GROUP BY
+    source_name,
+    source_id,
+    source_system_instance_id
+HAVING COUNT(*) > 1
+ORDER BY record_count DESC;
+
+
+
+SELECT
+    source_name,
+    source_id,
+    source_system_instance_id,
+    COUNT(*) AS record_count
+FROM silver_rdm_contracts
+GROUP BY
+    source_name,
+    source_id,
+    source_system_instance_id
+HAVING COUNT(*) > 1
+ORDER BY record_count DESC;
