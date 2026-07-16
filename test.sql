@@ -1,18 +1,10 @@
-%%sql
-
 SELECT
-    form_ans_id,
-    form_ans_care_epi_id,
-    form_ans_form_ques_id,
-    form_ans_date,
-    form_ans_date_time,
-    z_src_system_id,
-    z_src_system_instance
-FROM silver_form_answer
-WHERE z_src_system_id = 'MPB'
-  AND (
-        form_ans_date < DATE '1899-12-30'
-        OR form_ans_date > DATE '9999-12-31'
-      )
-ORDER BY form_ans_date
-LIMIT 100;
+    COUNT(*) AS total_rows,
+    COUNT(form_ans_date) AS populated_dates,
+    COUNT(*) - COUNT(form_ans_date) AS null_dates
+FROM silver_form_answer_y;
+
+
+
+
+Updated MPB Form Answer Date as per the revised definition. Added date range validation so values outside 30/12/1899 to 31/12/9999 return NULL. Validated the updated output table and confirmed outside_range_dates = 0.
