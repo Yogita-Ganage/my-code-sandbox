@@ -1,24 +1,21 @@
-%%sql
+CASE
+    WHEN TO_DATE(
+             TO_TIMESTAMP(sc.date_event_recorded, 'dd MMM yyyy HH:mm:ss')
+         ) BETWEEN DATE '1899-12-30' AND DATE '9999-12-31'
+    THEN TO_DATE(
+             TO_TIMESTAMP(sc.date_event_recorded, 'dd MMM yyyy HH:mm:ss')
+         )
+    ELSE NULL
+END AS form_ans_date
 
-WITH parsed AS (
-    SELECT
-        sc.id,
-        sc.date_event_recorded,
-        TO_DATE(
-            TO_TIMESTAMP(sc.date_event_recorded, 'dd MMM yyyy HH:mm:ss')
-        ) AS parsed_form_ans_date
-    FROM silver_some_srcode sc
-)
+
+
 
 SELECT
-    COUNT(*) AS total_rows,
-    COUNT(parsed_form_ans_date) AS parsed_rows,
-    SUM(
-        CASE
-            WHEN parsed_form_ans_date < DATE '1899-12-30'
-              OR parsed_form_ans_date > DATE '9999-12-31'
-            THEN 1
-            ELSE 0
-        END
-    ) AS outside_range_rows
-FROM parsed;
+    COUNT(*) AS outside_range_dates
+FROM silver_form_answer
+WHERE z_src_system_id = 'SONE'
+  AND (
+        form_ans_date < DATE '1899-12-30'
+        OR form_ans_date > DATE '9999-12-31'
+      );
