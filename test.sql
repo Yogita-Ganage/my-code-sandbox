@@ -1,17 +1,24 @@
-Completed the implementation for the WIP Form Answer Date UAT fix. Added the date range validation as per the updated definition. Completed validation in both the parsed lookup table and the final Silver table, and all checks passed.
+%%sql
 
+WITH parsed AS (
+    SELECT
+        sc.id,
+        sc.date_event_recorded,
+        TO_DATE(
+            TO_TIMESTAMP(sc.date_event_recorded, 'dd MMM yyyy HH:mm:ss')
+        ) AS parsed_form_ans_date
+    FROM silver_some_srcode sc
+)
 
-
-
-Implemented the date range validation for WIP Form Answer Date as per the updated definition. Dates that parse outside the valid range (30/12/1899–31/12/9999) are now returned as NULL.
-
-Validation completed:
-
-Verified invalid source dates (e.g. years 1014, 1016, 1019, 1021, etc.) are mapped to NULL.
-Validated the parsed date lookup table (outside_range_rows = 0).
-Validated the final silver_form_answer table (outside_range_dates = 0).
-
-
-
-
-
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(parsed_form_ans_date) AS parsed_rows,
+    SUM(
+        CASE
+            WHEN parsed_form_ans_date < DATE '1899-12-30'
+              OR parsed_form_ans_date > DATE '9999-12-31'
+            THEN 1
+            ELSE 0
+        END
+    ) AS outside_range_rows
+FROM parsed;
