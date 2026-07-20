@@ -1,1 +1,12 @@
-Peer review failed. The care_epi_contr_id attribute is not being populated because the join is not matching correctly. Production validation shows all 7,897 records are NULL. The join logic needs to be reviewed and corrected.
+SELECT
+    COUNT(*) AS total_mpb_records,
+    SUM(CASE 
+            WHEN form_ans_form_ques_id IS NULL THEN 1 
+            ELSE 0 
+        END) AS null_question_id_count,
+    SUM(CASE 
+            WHEN form_ans_form_ques_id IS NOT NULL THEN 1 
+            ELSE 0 
+        END) AS populated_question_id_count
+FROM silver_form_answer
+WHERE z_src_system_id = 'MPB';
