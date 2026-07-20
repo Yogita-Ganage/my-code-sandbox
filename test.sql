@@ -1,1 +1,1 @@
-Peer review failed. The care_epi_contr_id attribute is not being populated because the join is not matching correctly. Production validation shows all 7,897 records are NULL. The join logic needs to be reviewed and corrected.
+Once you've made the changes, please test them and either send me a screenshot of the results or update the validation details in the DevOps task. It'll help me re-do the peer review more quickly.
