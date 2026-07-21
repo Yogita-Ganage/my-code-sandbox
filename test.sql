@@ -10,3 +10,14 @@ SELECT
         END) AS populated_question_id_count
 FROM silver_form_answer
 WHERE z_src_system_id = 'MPB';
+
+SELECT
+    form_ans_id,
+    form_ans_form_ques_id,
+    form_ans_care_epi_id,
+    form_ans_src_answer,
+    z_src_system_id
+FROM silver_form_answer
+WHERE z_src_system_id = 'MPB'
+  AND form_ans_form_ques_id IS NULL
+LIMIT 20;
