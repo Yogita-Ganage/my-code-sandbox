@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 SELECT
     COUNT(*) AS total_mpb_records,
     SUM(CASE 
@@ -10,3 +11,4 @@ SELECT
         END) AS populated_question_id_count
 FROM silver_form_answer
 WHERE z_src_system_id = 'MPB';
+gg
