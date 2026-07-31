@@ -1,4 +1,7 @@
-WITH validation AS
+SELECT
+    mapping_status,
+    COUNT(*) AS record_count
+FROM
 (
     SELECT
         CASE
@@ -21,6 +24,7 @@ WITH validation AS
 
             ELSE '6 - Fully mapped'
         END AS mapping_status
+
     FROM silver_sone_srappointment sra
 
     LEFT JOIN silver_sone_srrotaslot_bridging_to_srappointment bridgetoapp
@@ -35,11 +39,7 @@ WITH validation AS
 
     WHERE CONCAT('SONE', sra.id_organisation, sra.id_patient)
           = 'SONE00D1260771749'
-)
+) x
 
-SELECT
-    mapping_status,
-    COUNT(*) AS record_count
-FROM validation
 GROUP BY mapping_status
 ORDER BY mapping_status;
