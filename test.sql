@@ -1,12 +1,6 @@
-SELECT
-    COUNT(*) AS null_rows,
-    COUNT(DISTINCT care_epi_id) AS distinct_null_care_episodes
-FROM care_epi_ytest
-WHERE care_epi_completion_status_conformed IS NULL;
+Root cause identified: The WIP completion status join was using CONCAT('WIP', ah.file_number), while session_care_epi_id in the sessions/staging table is created using the WIP001 prefix. This caused the completion status values not to map and return as null.
 
-SELECT
-    COUNT(DISTINCT CONCAT('WIP001', ah.file_number)) AS distinct_unmatched
-FROM silver_wip_activityheader ah
-LEFT JOIN silver_staging_completion_status_conformed compconf
-    ON CONCAT('WIP001', ah.file_number) = compconf.session_care_epi_id
-WHERE compconf.session_care_epi_id IS NULL;
+Updated the join to: CONCAT('WIP001', ah.file_number)
+
+
+Validated in PROD using a test table. The completion status now maps correctly and returns both 0 and 1 values as per the existing definition.
