@@ -1,1 +1,24 @@
-Investigation confirmed that the duplicate Care Episode records were caused by duplicate entries in the RDM Pathway mapping (SharePoint), introduced on 21-Jul-2026. The duplicate SharePoint records were removed, the Pathway dataflow was rerun, and the Silver RDM Pathway table now contains a single mapping for the affected pathway. After rebuilding silver_care_episode, the affected care_epi_id returns only one record and the duplicate issue is resolved.
+SELECT
+    referral_source,
+    z_src_system_id,
+    COUNT(*) AS row_count
+FROM silver_rdm_referral_source
+GROUP BY
+    referral_source,
+    z_src_system_id
+HAVING COUNT(*) > 1
+ORDER BY row_count DESC;
+
+SELECT *
+FROM silver_rdm_referral_source
+WHERE TRIM(LOWER(referral_source)) = '<duplicate_referral_source>';
+
+SELECT
+    care_epi_referral_source,
+    z_src_system_id,
+    COUNT(*) AS row_count
+FROM silver_rdm_referral_source_add
+GROUP BY
+    care_epi_referral_source,
+    z_src_system_id
+HAVING COUNT(*) > 1;
