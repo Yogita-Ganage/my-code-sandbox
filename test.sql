@@ -1,10 +1,11 @@
-SELECT *
-FROM silver_rdm_source_systems
-WHERE src_sys_inst_id = 'MPB001';
-
 SELECT
-    src_sys_inst_id,
-    COUNT(*)
-FROM silver_rdm_source_systems
-GROUP BY src_sys_inst_id
-HAVING COUNT(*) > 1;
+    contr_src_sys_inst_id,
+    contr_src_id,
+    COUNT(*) AS row_count
+FROM silver_rdm_contract
+WHERE contr_src_sys_inst_id = 'MPB001'
+GROUP BY
+    contr_src_sys_inst_id,
+    contr_src_id
+HAVING COUNT(*) > 1
+ORDER BY row_count DESC;
