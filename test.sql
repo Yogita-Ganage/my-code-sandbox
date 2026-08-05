@@ -1,11 +1,1 @@
-SELECT
-    care_epi_pathway,
-    care_epi_pathway_conformed,
-    z_record_created_date_time,
-    z_record_modified_date_time,
-    z_record_created_by_user,
-    z_record_modified_by_user
-FROM silver_rdm_pathway
-WHERE z_src_system_id = 'MPB'
-  AND TRIM(LOWER(care_epi_pathway)) = 'high intensity (cbt)'
-ORDER BY z_record_modified_date_time DESC;
+Investigation confirmed that the duplicate Care Episode records were caused by duplicate entries in the RDM Pathway mapping (SharePoint), introduced on 21-Jul-2026. The duplicate SharePoint records were removed, the Pathway dataflow was rerun, and the Silver RDM Pathway table now contains a single mapping for the affected pathway. After rebuilding silver_care_episode, the affected care_epi_id returns only one record and the duplicate issue is resolved.
