@@ -1,6 +1,7 @@
 %%sql
 
 SELECT
+    y.form_ans_care_epi_id,
     ar.created_at AS source_created_at,
 
     TO_TIMESTAMP(
@@ -13,9 +14,9 @@ SELECT
 FROM silver_form_answer_ytest y
 
 LEFT JOIN silver_drj_assessment_result_for_answers arans
-    ON y.form_ans_id = CONCAT('MPB001', arans.id)
+    ON y.form_ans_care_epi_id = CONCAT('MPB001', arans.id)
 
 LEFT JOIN silver_drj_assessment_results ar
     ON arans.assessment_result_id = ar.id
 
-WHERE y.form_ans_id = 'MPB00100bfce1fc-eb6f-4734-8d73-70513df112ef';
+WHERE y.form_ans_care_epi_id = '<QA मधला exact CARE EPI ID>';
