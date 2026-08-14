@@ -1,7 +1,8 @@
 %%sql
 
-SELECT
-    y.form_ans_care_epi_id,
+SELECT DISTINCT
+    CONCAT('MPB001', ar.user_id) AS form_ans_care_epi_id,
+    ar.id AS assessment_result_id,
     ar.created_at AS source_created_at,
 
     TO_TIMESTAMP(
@@ -9,14 +10,26 @@ SELECT
         'yyyy-MM-dd''T''HH:mm:ss.SSS''Z'''
     ) AS current_parsed_timestamp,
 
-    y.form_ans_date_time AS current_form_ans_date_time
+    CASE
+        WHEN TO_DATE(
+            TO_TIMESTAMP(
+                ar.created_at,
+                'yyyy-MM-dd''T''HH:mm:ss.SSS''Z'''
+            )
+        )
+        BETWEEN DATE '1899-12-30' AND DATE '9999-12-31'
 
-FROM silver_form_answer_ytest y
+        THEN TO_TIMESTAMP(
+            ar.created_at,
+            'yyyy-MM-dd''T''HH:mm:ss.SSS''Z'''
+        )
 
-LEFT JOIN silver_drj_assessment_result_for_answers arans
-    ON y.form_ans_care_epi_id = CONCAT('MPB001', arans.id)
+        ELSE NULL
+    END AS calculated_form_ans_date_time
 
-LEFT JOIN silver_drj_assessment_results ar
-    ON arans.assessment_result_id = ar.id
+FROM silver_drj_assessment_results ar
 
-WHERE y.form_ans_care_epi_id = '<QA मधला exact CARE EPI ID>';
+WHERE CONCAT('MPB001', ar.user_id)
+      = 'MPB00100cd2860-3399-4e56-8d2a-8d611ce9264f'
+
+ORDER BY ar.created_at;
