@@ -1,21 +1,25 @@
-df_test = (
-    spark.read
-    .option("header", True)
-    .option("delimiter", "|")
-    .csv("Files/landing/DRJ/Tenancies_20260820/2026/08/20/Tenancies_202608200205.csv")
-    .limit(20)
+from pyspark.sql.functions import col
+
+existing_ids = spark.table("bronze_drj_tenancies").select("id").distinct()
+
+check_df = (
+    df_tenancies
+    .join(existing_ids, on="id", how="left_semi")
 )
 
-df_test.write \
-    .format("delta") \
-    .mode("overwrite") \
-    .option("overwriteSchema", "true") \
-    .saveAsTable("zz_test_bronze_drj_tenancies")
+print("Rows in today's file:", df_tenancies.count())
+print("IDs already present in Bronze:", check_df.count())
 
 
-
-    SELECT
-    id,
-    clientType,
-    invoicePrefix
-FROM zz_test_bronze_drj_tenancies;
+display(
+    df_tenancies
+    .select("id", "clientType", "invoicePrefix")
+    .join(
+        spark.table("bronze_drj_tenancies")
+             .select("id", "clientType")
+             .withColumnRenamed("clientType", "existing_clientType"),
+        on="id",
+        how="left"
+    )
+    .limit(20)
+)
