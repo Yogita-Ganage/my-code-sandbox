@@ -1,32 +1,7 @@
--- WIP Delivery Method source logic
--- Delivery Method is derived using Service Type + Service Activity + Activity Type.
+Implemented WIP Delivery Method Source ID logic by deriving a unique ID using the source system instance, Service Type ID, Service Activity ID and Activity Type ID. During validation, 17 source records were identified with a missing Service Type ID. Without the non-null filter, 786 distinct delivery method records were generated. After applying the IS NOT NULL conditions for Service Type, Service Activity and Activity Type, 781 valid records were generated. The incomplete combinations are therefore excluded from the final output.
 
-wip_source AS (
+2. del_meth_src_name
+Implemented WIP Delivery Method Source Name logic by concatenating Service Type, Service Activity and Activity Type descriptions to create the source delivery method name.
 
-    SELECT DISTINCT
-        CONCAT('WIP001_', st.id, '_', s.id, '_', at.id) AS del_meth_src_id,
-        'WIP001' AS del_meth_src_sys_inst_id,
-        CONCAT_WS('_', st.description, s.description, at.description) AS del_meth_src_name
-
-    FROM silver_wip_activityentry ae
-
-    LEFT JOIN silver_wip_activityheader ah
-        ON ae.activity_header_id = ah.id
-
-    LEFT JOIN silver_wip_servicetype st
-        ON ah.service_type_id = st.id
-
-    LEFT JOIN silver_wip_activityservice acs
-        ON ae.activity_service_id = acs.id
-
-    LEFT JOIN silver_wip_service s
-        ON acs.service_id = s.id
-
-    LEFT JOIN silver_wip_activitytype at
-        ON ae.activity_type_id = at.id
-
-    -- Exclude incomplete records where any Delivery Method component is missing
-    WHERE st.id IS NOT NULL
-      AND s.id IS NOT NULL
-      AND at.id IS NOT NULL
-)
+3. del_meth_src_sys_inst_id
+Implemented WIP Source System Instance ID logic by populating WIP001 for all WIP Delivery Method records.
