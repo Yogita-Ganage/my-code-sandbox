@@ -1,38 +1,32 @@
-SELECT DISTINCT
-    ah.service_type_id,
-    st.description AS service_type,
-    ae.activity_service_id,
-    acs.service_id,
-    s.description AS service_activity,
-    ae.activity_type_id,
-    at.description AS activity_type
-FROM silver_wip_activityentry ae
+-- WIP Delivery Method source logic
+-- Delivery Method is derived using Service Type + Service Activity + Activity Type.
 
-LEFT JOIN silver_wip_activityheader ah
-    ON ae.activity_header_id = ah.id
+wip_source AS (
 
-LEFT JOIN silver_wip_servicetype st
-    ON ah.service_type_id = st.id
+    SELECT DISTINCT
+        CONCAT('WIP001_', st.id, '_', s.id, '_', at.id) AS del_meth_src_id,
+        'WIP001' AS del_meth_src_sys_inst_id,
+        CONCAT_WS('_', st.description, s.description, at.description) AS del_meth_src_name
 
-LEFT JOIN silver_wip_activityservice acs
-    ON ae.activity_service_id = acs.id
+    FROM silver_wip_activityentry ae
 
-LEFT JOIN silver_wip_service s
-    ON acs.service_id = s.id
+    LEFT JOIN silver_wip_activityheader ah
+        ON ae.activity_header_id = ah.id
 
-LEFT JOIN silver_wip_activitytype at
-    ON ae.activity_type_id = at.id
+    LEFT JOIN silver_wip_servicetype st
+        ON ah.service_type_id = st.id
 
-WHERE st.id IS NULL
-   OR s.id IS NULL
-   OR at.id IS NULL;
+    LEFT JOIN silver_wip_activityservice acs
+        ON ae.activity_service_id = acs.id
 
+    LEFT JOIN silver_wip_service s
+        ON acs.service_id = s.id
 
+    LEFT JOIN silver_wip_activitytype at
+        ON ae.activity_type_id = at.id
 
-
-SELECT
-    COUNT(*) AS total_rows,
-    SUM(CASE WHEN ah.service_type_id IS NULL THEN 1 ELSE 0 END) AS null_service_type_rows
-FROM silver_wip_activityentry ae
-LEFT JOIN silver_wip_activityheader ah
-    ON ae.activity_header_id = ah.id;
+    -- Exclude incomplete records where any Delivery Method component is missing
+    WHERE st.id IS NOT NULL
+      AND s.id IS NOT NULL
+      AND at.id IS NOT NULL
+)
