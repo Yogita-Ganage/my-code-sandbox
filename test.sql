@@ -1,50 +1,44 @@
-SELECT DISTINCT
-    srref.id AS referral_id,
-    sra.id AS appointment_id,
-    sra.id_organisation,
-    sra.id_organisation_source,
-    bridgetoapp.rota_slot_type,
-    bridgetoapp.rota_type
-FROM silver_sone_srappointment sra
+SELECT
+    TRIM(rota_slot_type) AS rota_slot_type,
 
-LEFT JOIN silver_sone_srreferralin srref
-    ON srref.id = sra.id_referral_in
+    CASE
+        WHEN LOWER(TRIM(rota_slot_type)) LIKE '%f2f%'
+          OR LOWER(TRIM(rota_slot_type)) LIKE '%face to face%'
+            THEN 'Face to Face'
 
-LEFT JOIN silver_sone_srrotaslot_bridging_to_srappointment bridgetoapp
-    ON CONCAT('SONE', sra.id_organisation, sra.id) = bridgetoapp.src_session_id
-    AND sra.id_organisation = bridgetoapp.id_organisation_source
+        WHEN LOWER(TRIM(rota_slot_type)) LIKE '%telephone%'
+          OR LOWER(TRIM(rota_slot_type)) LIKE '%remote%'
+            THEN 'Telephone'
 
-WHERE srref.id = 75902966;
+        WHEN LOWER(TRIM(rota_slot_type)) LIKE '%video%'
+            THEN 'Video'
 
+        ELSE 'Unmapped'
+    END AS derived_delivery_method,
 
+    COUNT(*) AS record_count
 
+FROM silver_sone_srrotaslot_bridging_to_srappointment
 
-SELECT DISTINCT
-    id,
-    configured_list,
-    configured_list_option,
-    id_organisation_source
-FROM silver_sone_srconfiguredlistoption
-WHERE
-       LOWER(configured_list_option) LIKE '%initial consultation%'
-    OR LOWER(configured_list_option) LIKE '%face to face%'
-    OR LOWER(configured_list_option) LIKE '%telephone%'
-    OR LOWER(configured_list_option) LIKE '%remote%'
-    OR LOWER(configured_list_option) LIKE '%video%'
-ORDER BY configured_list_option;
+WHERE rota_slot_type IS NOT NULL
 
+GROUP BY
+    TRIM(rota_slot_type),
+    CASE
+        WHEN LOWER(TRIM(rota_slot_type)) LIKE '%f2f%'
+          OR LOWER(TRIM(rota_slot_type)) LIKE '%face to face%'
+            THEN 'Face to Face'
 
+        WHEN LOWER(TRIM(rota_slot_type)) LIKE '%telephone%'
+          OR LOWER(TRIM(rota_slot_type)) LIKE '%remote%'
+            THEN 'Telephone'
 
-SELECT DISTINCT
-    id,
-    id_mapping_group,
-    mapping,
-    id_organisation_source
-FROM silver_sone_srmapping
-WHERE
-       LOWER(mapping) LIKE '%initial consultation%'
-    OR LOWER(mapping) LIKE '%face%'
-    OR LOWER(mapping) LIKE '%telephone%'
-    OR LOWER(mapping) LIKE '%remote%'
-    OR LOWER(mapping) LIKE '%video%'
-ORDER BY mapping;
+        WHEN LOWER(TRIM(rota_slot_type)) LIKE '%video%'
+            THEN 'Video'
+
+        ELSE 'Unmapped'
+    END
+
+ORDER BY
+    derived_delivery_method,
+    rota_slot_type;
