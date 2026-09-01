@@ -1,51 +1,23 @@
-sone_source AS (
-    SELECT DISTINCT
-        CONCAT(
-            'SONE',
-            id_organisation_source,
-            '_',
-            LOWER(TRIM(CONCAT(derived_delivery_method, ' - ', rota_type)))
-        ) AS del_meth_src_id,
+SELECT DISTINCT
+    sra.id AS appointment_id,
+    sra.id_referral_in AS referral_id,
 
-        CONCAT(
-            'SONE',
-            id_organisation_source
-        ) AS del_meth_src_sys_inst_id,
+    bridgetoapp.rota_slot_type,
+    bridgetoapp.rota_type,
+    bridgetoapp.id_organisation_source,
 
-        CONCAT(
-            derived_delivery_method,
-            ' - ',
-            TRIM(rota_type)
-        ) AS del_meth_src_name
+    clo.id AS configured_list_option_id,
+    clo.configured_list_option
 
-    FROM (
-        SELECT DISTINCT
-            bridgetoapp.id_organisation_source,
-            bridgetoapp.rota_type,
+FROM silver_sone_srappointment sra
 
-            CASE
-                WHEN LOWER(TRIM(bridgetoapp.rota_slot_type)) LIKE '%f2f%'
-                  OR LOWER(TRIM(bridgetoapp.rota_slot_type)) LIKE '%face to face%'
-                    THEN 'Face to Face'
+LEFT JOIN silver_sone_srrotaslot_bridging_to_srappointment bridgetoapp
+    ON CONCAT('SONE', sra.id_organisation, sra.id) = bridgetoapp.src_session_id
+    AND sra.id_organisation = bridgetoapp.id_organisation_source
 
-                WHEN LOWER(TRIM(bridgetoapp.rota_slot_type)) LIKE '%remote%'
-                  OR LOWER(TRIM(bridgetoapp.rota_slot_type)) LIKE '%telephone%'
-                    THEN 'Telephone'
+LEFT JOIN silver_sone_srconfiguredlistoption clo
+    ON clo.id_organisation_source = bridgetoapp.id_organisation_source
+    AND LOWER(TRIM(clo.configured_list_option))
+        = LOWER(TRIM(bridgetoapp.rota_slot_type))
 
-                WHEN LOWER(TRIM(bridgetoapp.rota_slot_type)) LIKE '%video%'
-                    THEN 'Video'
-
-                ELSE NULL
-            END AS derived_delivery_method
-
-        FROM silver_sone_srappointment sra
-
-        LEFT JOIN silver_sone_srrotaslot_bridging_to_srappointment bridgetoapp
-            ON CONCAT('SONE', sra.id_organisation, sra.id) = bridgetoapp.src_session_id
-            AND sra.id_organisation = bridgetoapp.id_organisation_source
-
-        WHERE bridgetoapp.rota_slot_type IS NOT NULL
-    ) sone
-
-    WHERE derived_delivery_method IS NOT NULL
-),
+WHERE sra.id IN (34566831071, 34466326203);
