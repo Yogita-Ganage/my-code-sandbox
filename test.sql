@@ -1,22 +1,20 @@
-SELECT DISTINCT
-    src_session_id,
-    id_organisation_source,
-    rota_slot_type,
-    rota_type
+SELECT
+    id_rota_from_rotaslot,
+    COUNT(
+        DISTINCT CONCAT(
+            LOWER(TRIM(rota_slot_type)),
+            ' | ',
+            LOWER(TRIM(rota_type))
+        )
+    ) AS delivery_method_count
 FROM silver_sone_srrotaslot_bridging_to_srappointment
-WHERE src_session_id LIKE '%34566831071%'
-   OR src_session_id LIKE '%34466326203%';
-
-
-
-SELECT DISTINCT
-    src_session_id,
-    id_organisation_source,
-    rota_slot_type,
-    rota_type
-FROM silver_sone_srrotaslot_bridging_to_srappointment
-WHERE id_organisation_source = '00D1Z'
-  AND (
-        LOWER(rota_slot_type) LIKE '%initial consultation%'
-        OR LOWER(rota_type) LIKE '%bromley physio%'
-      );
+WHERE id_rota_from_rotaslot IS NOT NULL
+GROUP BY id_rota_from_rotaslot
+HAVING COUNT(
+        DISTINCT CONCAT(
+            LOWER(TRIM(rota_slot_type)),
+            ' | ',
+            LOWER(TRIM(rota_type))
+        )
+    ) > 1
+ORDER BY delivery_method_count DESC;
