@@ -1,62 +1,27 @@
-WITH direct_source AS (
-    SELECT DISTINCT
-        TRIM(s.rota_slot_type) AS rota_slot_type,
-        TRIM(r.rota_type) AS rota_type
-    FROM silver_sone_srrotaslot s
-    INNER JOIN silver_sone_srrota r
-        ON s.id_rota = r.id
-       AND s.id_organisation_source = r.id_organisation_source
-    WHERE s.rota_slot_type IS NOT NULL
-      AND r.rota_type IS NOT NULL
-),
+Update:
 
-bridge_source AS (
-    SELECT DISTINCT
-        TRIM(rota_slot_type) AS rota_slot_type,
-        TRIM(rota_type) AS rota_type
-    FROM silver_sone_srrotaslot_bridging_to_srappointment
-    WHERE rota_slot_type IS NOT NULL
-      AND rota_type IS NOT NULL
-)
+Following Eve’s clarification, the S1 Delivery Method logic was reviewed again so that source values are returned as-is, without deriving/conforming values such as F2F → Face to Face or Remote → Telephone.
 
-SELECT *
-FROM direct_source
+Two approaches were then compared for sourcing the Delivery Method values:
 
-EXCEPT
+Direct source approach using silver_sone_srrotaslot joined to silver_sone_srrota.
+Appointment bridge approach using silver_sone_srrotaslot_bridging_to_srappointment.
 
-SELECT *
-FROM bridge_source;
+Validation showed:
 
+Direct source returned 1,398 distinct rota_slot_type + rota_type combinations.
+Bridge approach returned 1,124 distinct combinations.
+274 combinations were present in the direct source but not in the bridge.
+0 combinations were present in the bridge but missing from the direct source.
 
+This confirmed that the bridge is effectively a subset of the direct source and only contains values that have been linked through appointments.
 
+As the definition does not state that only Delivery Methods already used on appointments should be included, the direct source approach was selected. This avoids excluding valid source-configured values that may not yet have been used on an appointment.
 
+Final implementation:
 
+del_meth_src_name uses the source rota_slot_type + rota_type as-is.
+del_meth_src_sys_inst_id is derived as SONE + id_organisation_source.
+del_meth_src_id is derived from the S1 system instance plus the source Delivery Method combination, as no separate unique Delivery Method source ID was identified.
 
-WITH direct_source AS (
-    SELECT DISTINCT
-        TRIM(s.rota_slot_type) AS rota_slot_type,
-        TRIM(r.rota_type) AS rota_type
-    FROM silver_sone_srrotaslot s
-    INNER JOIN silver_sone_srrota r
-        ON s.id_rota = r.id
-       AND s.id_organisation_source = r.id_organisation_source
-    WHERE s.rota_slot_type IS NOT NULL
-      AND r.rota_type IS NOT NULL
-),
-
-bridge_source AS (
-    SELECT DISTINCT
-        TRIM(rota_slot_type) AS rota_slot_type,
-        TRIM(rota_type) AS rota_type
-    FROM silver_sone_srrotaslot_bridging_to_srappointment
-    WHERE rota_slot_type IS NOT NULL
-      AND rota_type IS NOT NULL
-)
-
-SELECT *
-FROM bridge_source
-
-EXCEPT
-
-SELECT *
-FROM direct_source;
+Final approach: direct silver_sone_srrotaslot → silver_sone_srrota join.
