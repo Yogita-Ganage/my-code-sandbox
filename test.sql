@@ -1,12 +1,42 @@
-Implemented session_del_meth_id logic for MPB.
-Joined silver_rdm_delivery_method using del_meth_src_id = CONCAT('MPB001_', appointment_type_id) and populated session_del_meth_id from the corresponding del_meth_id.
+SELECT
+    SerT.id AS service_type_id,
+    srv.id AS service_id,
+    atyp.id AS activity_type_id,
+    COUNT(*) AS record_count
+FROM silver_wip_activityentry ae
 
-Validation completed in PROD test table:
+LEFT JOIN silver_wip_activityheader AH
+    ON ae.activity_header_id = AH.id
 
-Production MPB row count: 325,301
-Test MPB row count: 325,301
-session_del_meth_id populated for all 325,301 MPB records
-No duplicate MPB del_meth_src_id values found in silver_rdm_delivery_method
-Spot-check confirmed correct mappings, e.g. MPB001_1 → 551 (Video), MPB001_2 → 552 (Voice), MPB001_4 → 553 (Face to Face)
+LEFT JOIN silver_wip_ServiceType SerT
+    ON SerT.id = AH.service_type_id
 
-No row count impact observed after introducing the RDM join.
+LEFT JOIN silver_wip_activitytype atyp
+    ON ae.activity_type_id = atyp.id
+
+LEFT JOIN silver_wip_activityservice actserv
+    ON actserv.id = ae.activity_service_id
+
+LEFT JOIN silver_wip_service srv
+    ON actserv.service_id = srv.id
+
+WHERE SerT.id IS NULL
+   OR srv.id IS NULL
+   OR atyp.id IS NULL
+
+GROUP BY
+    SerT.id,
+    srv.id,
+    atyp.id;
+
+
+
+
+SELECT
+    del_meth_src_id,
+    COUNT(*) AS cnt
+FROM silver_rdm_delivery_method
+WHERE del_meth_src_id LIKE 'WIP001_%'
+GROUP BY del_meth_src_id
+HAVING COUNT(*) > 1
+ORDER BY cnt DESC;
