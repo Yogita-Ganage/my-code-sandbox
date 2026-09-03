@@ -1,33 +1,41 @@
 %%sql
 
-SELECT
-    CONCAT('SONE', a.id_organisation_source, CAST(a.id AS STRING)) AS uat_record_id,
+DROP TABLE IF EXISTS test_sone_care_product;
 
+CREATE TABLE test_sone_care_product AS
+
+SELECT DISTINCT
+
+    a.id AS appointment_id,
+    a.id_organisation_source,
+    a.id_rota,
+
+    -- Raw values for validation
     a.rota_type AS appointment_rota_type,
-    r.rota_type AS rota_table_rota_type,
+    s.id AS rota_slot_id,
     s.rota_slot_type,
+    s.blocked_slot,
+    r.id AS rota_id,
+    r.rota_type AS rota_table_rota_type,
 
-    -- OLD cprod_name logic
-    LOWER(CONCAT(TRIM(s.rota_slot_type), '_', TRIM(r.rota_type))) AS old_cprod_name,
+    -- Updated cprod_src_name logic
+    CONCAT(
+        COALESCE(TRIM(a.rota_type), 'Null'),
+        '_',
+        COALESCE(TRIM(s.rota_slot_type), 'Null')
+    ) AS cprod_name,
 
-    -- NEW cprod_name logic
-    CONCAT(COALESCE(TRIM(a.rota_type), 'Null'), '_', COALESCE(TRIM(s.rota_slot_type), 'Null')) AS new_cprod_name,
+    CONCAT('SONE', a.id_organisation_source) AS cprod_src_sys_inst_id,
 
-    -- OLD cprod_src_id logic
-    CONCAT('SONE', s.id_organisation_source, '_',
-           LOWER(CONCAT(TRIM(s.rota_slot_type), '_', TRIM(r.rota_type)))) AS old_cprod_src_id,
-
-    -- NEW mapping for cprod_src_id, but WITHOUT NULL handling
-    CONCAT('SONE', a.id_organisation_source, '_',
-           LOWER(CONCAT(TRIM(a.rota_type), '_', TRIM(s.rota_slot_type)))) AS new_cprod_src_id_without_null_handling,
-
-    -- NEW mapping for cprod_src_id, using same NULL handling as cprod_name
-    CONCAT('SONE', a.id_organisation_source, '_',
-           LOWER(CONCAT(
-               COALESCE(TRIM(a.rota_type), 'Null'),
-               '_',
-               COALESCE(TRIM(s.rota_slot_type), 'Null')
-           ))) AS new_cprod_src_id_with_null_handling
+    -- cprod_src_id using corresponding IDs from the definition
+    CONCAT(
+        'SONE',
+        a.id_organisation_source,
+        '_',
+        CAST(s.id AS STRING),
+        '_',
+        CAST(r.id AS STRING)
+    ) AS cprod_src_id
 
 FROM silver.silver_sone_srappointment a
 
@@ -36,6 +44,28 @@ LEFT JOIN silver.silver_sone_srrota r
 
 LEFT JOIN silver.silver_sone_srrotaslot s
     ON a.id_rota = s.id_rota
+    AND s.blocked_slot = 0
 
-WHERE CONCAT('SONE', a.id_organisation_source, CAST(a.id AS STRING))
-      = 'SONENLF1117057871588';
+WHERE a.id IS NOT NULL
+  AND a.id_organisation_source IS NOT NULL;
+
+
+  %%sql
+
+SELECT *
+FROM test_sone_care_product
+WHERE CONCAT(
+        'SONE',
+        id_organisation_source,
+        CAST(appointment_id AS STRING)
+      ) = 'SONENLF1117057871588';
+
+
+
+%%sql
+
+SELECT
+    COUNT(*) AS total_count,
+    SUM(CASE WHEN cprod_src_id IS NULL THEN 1 ELSE 0 END) AS null_cprod_src_id,
+    SUM(CASE WHEN cprod_src_id IS NOT NULL THEN 1 ELSE 0 END) AS not_null_cprod_src_id
+FROM test_sone_care_product;
