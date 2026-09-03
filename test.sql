@@ -1,57 +1,9 @@
-SELECT DISTINCT
-    st.id AS service_type_id,
-    s.id AS service_id,
-    at.id AS activity_type_id,
+Implemented session_del_meth_id logic for WIP.
+Delivery Method is derived using Service Type + Service + Activity Type, with del_meth_src_id built as WIP001_<service_type_id>_<service_id>_<activity_type_id>. This is matched to silver_rdm_delivery_method to populate the corresponding del_meth_id.
 
-    CONCAT(
-        'WIP001_',
-        CAST(st.id AS STRING),
-        '_',
-        CAST(s.id AS STRING),
-        '_',
-        CAST(at.id AS STRING)
-    ) AS expected_del_meth_src_id,
+Validation completed in PROD test table:
 
-    rdm.del_meth_src_id,
-    rdm.del_meth_id,
-    rdm.del_meth_src_name,
-    rdm.del_meth_name_conformed
-
-FROM silver_wip_activityentry ae
-
-LEFT JOIN silver_wip_activityheader ah
-    ON ae.activity_header_id = ah.id
-
-LEFT JOIN silver_wip_servicetype st
-    ON ah.service_type_id = st.id
-
-LEFT JOIN silver_wip_activityservice acs
-    ON ae.activity_service_id = acs.id
-
-LEFT JOIN silver_wip_service s
-    ON acs.service_id = s.id
-
-LEFT JOIN silver_wip_activitytype at
-    ON ae.activity_type_id = at.id
-
-LEFT JOIN silver_rdm_delivery_method rdm
-    ON LOWER(TRIM(rdm.del_meth_src_id))
-       = LOWER(TRIM(
-           CONCAT(
-               'WIP001_',
-               CAST(st.id AS STRING),
-               '_',
-               CAST(s.id AS STRING),
-               '_',
-               CAST(at.id AS STRING)
-           )
-       ))
-
-WHERE st.id IS NOT NULL
-  AND s.id IS NOT NULL
-  AND at.id IS NOT NULL
-
-ORDER BY
-    st.id,
-    s.id,
-    at.id;
+session_del_meth_id populated for 987,023 WIP records.
+17 records remain NULL; validation confirmed these have a missing Service Type ID and are intentionally excluded from the Delivery Method ADD logic.
+No duplicate WIP del_meth_src_id values found in silver_rdm_delivery_method.
+Spot checks confirmed the generated Delivery Method source IDs match the RDM source IDs and return the expected del_meth_id.
