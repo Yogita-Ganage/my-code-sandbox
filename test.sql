@@ -1,46 +1,22 @@
-%%sql
+-- SONE: Updated cprod_src_name to use SRAppointment RotaType + SRRotaSlot RotaSlotType, retaining NULL values as 'Null'.
 
-SELECT
-    CONCAT('SONE', a.id_organisation_source, CAST(a.id AS STRING)) AS uat_record_id,
+sone_care_product AS (
+    SELECT DISTINCT
 
-    a.id,
-    a.id_organisation_source,
-    a.id_rota,
+        CONCAT(COALESCE(TRIM(a.rota_type), 'Null'), '_', COALESCE(TRIM(s.rota_slot_type), 'Null')) AS cprod_name,
 
-    -- Definition says RotaType comes from SRAppointment
-    a.rota_type AS appointment_rota_type,
+        CONCAT('SONE', a.id_organisation_source) AS cprod_src_sys_inst_id,
 
-    -- Current code is taking rota_type from SRRota
-    r.rota_type AS current_code_rota_type,
+        CONCAT('SONE', a.id_organisation_source, '_', LOWER(CONCAT(TRIM(s.rota_slot_type), '_', TRIM(r.rota_type)))) AS cprod_src_id
 
-    s.rota_slot_type,
+    FROM silver.silver_sone_srappointment a
 
-    -- Value as per current implementation
-    LOWER(
-        CONCAT(
-            TRIM(s.rota_slot_type),
-            '_',
-            TRIM(r.rota_type)
-        )
-    ) AS current_code_cprod_name,
+    LEFT JOIN silver.silver_sone_srrota r
+        ON a.id_rota = r.id
 
-    -- Value following UAT/definition behaviour
-    CONCAT(
-        COALESCE(TRIM(a.rota_type), 'Null'),
-        '_',
-        COALESCE(TRIM(s.rota_slot_type), 'Null')
-    ) AS expected_cprod_src_name
+    LEFT JOIN silver.silver_sone_srrotaslot s
+        ON a.id_rota = s.id_rota
 
-FROM silver.silver_sone_srappointment a
-
-LEFT JOIN silver.silver_sone_srrota r
-    ON a.id_rota = r.id
-
-LEFT JOIN silver.silver_sone_srrotaslot s
-    ON a.id_rota = s.id_rota
-
-WHERE CONCAT(
-        'SONE',
-        a.id_organisation_source,
-        CAST(a.id AS STRING)
-      ) = 'SONENLF1117057871588';
+    WHERE a.id IS NOT NULL
+      AND a.id_organisation_source IS NOT NULL
+),
