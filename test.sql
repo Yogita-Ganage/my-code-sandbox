@@ -1,9 +1,9 @@
-Updated the MPB care_epi_contr_id logic to align with the latest definition. The previous join was using the old hardcoded contr_src_sys_inst_id = 'MPB001'. This has been replaced with a join using contr_src_name from silver_rdm_contract, matched to the MPB tenancy name.
+Updated the WIP care_epi_contr_id logic to align with the attribute definition. Removed the old hardcoded contr_src_sys_inst_id = 'WIP001' condition and matched the RDM Contract using contr_src_name.
 
-Validation in PROD test table:
+Validation completed in PROD test table:
 
-Total records: 52,380
-Non-null care_epi_contr_id: 52,319
-Null: 61
+Total records: 439,573
+Non-null care_epi_contr_id: 439,572
+Null: 1
 
-The new join is successfully populating the RDM Contract ID for MPB records.
+The updated join is successfully populating the RDM Contract ID for WIP records.
