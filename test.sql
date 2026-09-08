@@ -1,9 +1,12 @@
-Updated the WIP care_epi_contr_id logic to align with the attribute definition. Removed the old hardcoded contr_src_sys_inst_id = 'WIP001' condition and matched the RDM Contract using contr_src_name.
+-- Get the SONE contract source name using the same source-system-instance mapping used in the RDM Contract ADD logic.
+LEFT JOIN silver_rdm_source_system_instance rssi_contr
+    ON rssi_contr.src_sys_inst_src_id =
+       CONCAT('SONE', CAST(r.id_organisation_source AS STRING))
+    AND rssi_contr.src_sys_src_id = 'SONE'
 
-Validation completed in PROD test table:
-
-Total records: 439,573
-Non-null care_epi_contr_id: 439,572
-Null: 1
-
-The updated join is successfully populating the RDM Contract ID for WIP records.
+-- Match the RDM contract using both source name and source ID to avoid duplicate matches where the same source name exists more than once.
+LEFT JOIN silver_rdm_contract rdmc
+    ON TRIM(LOWER(rdmc.contr_src_name))
+       = TRIM(LOWER(rssi_contr.src_sys_ins_org_short_name_conformed))
+    AND CAST(rdmc.contr_src_id AS VARCHAR(100))
+       = CAST(r.id_organisation_source AS VARCHAR(100))
