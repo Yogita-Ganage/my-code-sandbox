@@ -3,7 +3,9 @@ WITH current_name AS (
         a.id_organisation_source,
         TRIM(a.rota_type) AS rota_type,
         TRIM(s.rota_slot_type) AS rota_slot_type,
-        s.blocked_slot
+        s.blocked_slot,
+        a.id_rota,
+        s.id AS rota_slot_id
     FROM silver.silver_sone_srappointment a
     LEFT JOIN silver.silver_sone_srrotaslot s
         ON a.id_rota = s.id_rota
@@ -28,8 +30,7 @@ missing AS (
        AND LOWER(c.rota_slot_type) <=> LOWER(b.rota_slot_type)
 )
 
-SELECT
-    blocked_slot,
-    COUNT(*) AS cnt
+SELECT *
 FROM missing
-GROUP BY blocked_slot;
+WHERE blocked_slot = false
+ORDER BY id_organisation_source, rota_type, rota_slot_type;
