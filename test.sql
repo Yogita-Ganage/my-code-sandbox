@@ -24,14 +24,8 @@ bridge_name AS (
     FROM silver.silver_sone_srrotaslot_bridging_to_srappointment b
 )
 
-SELECT
-    'current' AS source,
-    COUNT(*) AS cnt
-FROM current_name
-
-UNION ALL
-
-SELECT
-    'bridge' AS source,
-    COUNT(*) AS cnt
-FROM bridge_name;
+SELECT c.*
+FROM current_name c
+LEFT ANTI JOIN bridge_name b
+    ON c.id_organisation_source = b.id_organisation_source
+   AND LOWER(TRIM(c.cprod_name)) = LOWER(TRIM(b.cprod_name));
