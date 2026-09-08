@@ -1,11 +1,18 @@
-Updated the SONE care_epi_contr_id logic to align with the attribute definition by matching the RDM Contract using contr_src_name and contr_src_id.
+CONCAT(
+    COALESCE(TRIM(a.rota_type), 'Null'),
+    '_',
+    COALESCE(TRIM(s.rota_slot_type), 'Null')
+) AS cprod_name,
 
-Validation confirmed that the join logic is working. The remaining NULL values are because most SONE contracts are currently present in silver_rdm_contract_add but are not yet available in the main silver_rdm_contract table, so a SharePoint-generated contr_id is not yet available for those records.
-
-Current validation:
-
-Total records: 572,846
-Non-null care_epi_contr_id: 94
-Null: 572,752
-
-The code change is complete; remaining NULLs are dependent on the RDM Contract entries being promoted into the main RDM table.
+CASE
+    WHEN s.blocked_slot = false THEN
+        CONCAT(
+            'SONE',
+            a.id_organisation_source,
+            '_',
+            CAST(a.id_rota AS STRING),
+            '_',
+            CAST(s.id AS STRING)
+        )
+    ELSE NULL
+END AS cprod_src_id
