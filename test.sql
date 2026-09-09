@@ -1,36 +1,18 @@
-WITH current_name AS (
-    SELECT DISTINCT
-        a.id_organisation_source,
-        TRIM(a.rota_type) AS rota_type,
-        TRIM(s.rota_slot_type) AS rota_slot_type,
-        s.blocked_slot,
-        a.id_rota,
-        s.id AS rota_slot_id
-    FROM silver.silver_sone_srappointment a
-    LEFT JOIN silver.silver_sone_srrotaslot s
-        ON a.id_rota = s.id_rota
-    WHERE a.id IS NOT NULL
-      AND a.id_organisation_source IS NOT NULL
-),
+SELECT
+    a.id_organisation_source,
+    COUNT(DISTINCT a.id) AS record_count
+FROM silver.silver_sone_srappointment a
 
-bridge_name AS (
-    SELECT DISTINCT
-        b.id_organisation_source,
-        TRIM(b.rota_type) AS rota_type,
-        TRIM(b.rota_slot_type) AS rota_slot_type
-    FROM silver.silver_sone_srrotaslot_bridging_to_srappointment b
-),
+LEFT JOIN silver.silver_sone_srrotaslot s
+    ON a.id_rota = s.id_rota
 
-missing AS (
-    SELECT c.*
-    FROM current_name c
-    LEFT ANTI JOIN bridge_name b
-        ON c.id_organisation_source = b.id_organisation_source
-       AND LOWER(c.rota_type) <=> LOWER(b.rota_type)
-       AND LOWER(c.rota_slot_type) <=> LOWER(b.rota_slot_type)
-)
+WHERE a.id IS NOT NULL
+  AND a.id_organisation_source IS NOT NULL
+  AND COALESCE(TRIM(a.rota_type), '') = ''
+  AND COALESCE(TRIM(s.rota_slot_type), '') = ''
 
-SELECT *
-FROM missing
-WHERE blocked_slot = false
-ORDER BY id_organisation_source, rota_type, rota_slot_type;
+GROUP BY
+    a.id_organisation_source
+
+ORDER BY
+    a.id_organisation_source;
