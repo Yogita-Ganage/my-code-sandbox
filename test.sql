@@ -8,11 +8,18 @@ LEFT JOIN silver_wip_organisation AS org
 
 
 SELECT
-    src_session_id,
-    COUNT(*) AS row_count,
-    COUNT(DISTINCT session_patient_id) AS patient_count
-FROM silver_sessiony_test
-WHERE z_src_system_id = 'WIP'
-GROUP BY src_session_id
-HAVING COUNT(*) > 1
-ORDER BY patient_count DESC, src_session_id;
+    ae.id AS session_id,
+    ae.activity_service_id,
+    actserv.service_id,
+    serv.id AS rdm_service_id,
+    serv.description,
+    serv.service_type
+FROM silver_wip_activityentry ae
+
+LEFT JOIN silver_wip_activityservice actserv
+    ON actserv.id = ae.activity_service_id
+
+LEFT JOIN silver_rdm_wip_service_type serv
+    ON serv.id = actserv.service_id
+
+WHERE ae.id = 326701;
