@@ -8,18 +8,14 @@ LEFT JOIN silver_wip_organisation AS org
 
 
 SELECT
-    ae.id AS session_id,
-    ae.activity_service_id,
-    actserv.service_id,
-    serv.id AS rdm_service_id,
-    serv.description,
-    serv.service_type
-FROM silver_wip_activityentry ae
-
-LEFT JOIN silver_wip_activityservice actserv
-    ON actserv.id = ae.activity_service_id
-
-LEFT JOIN silver_rdm_wip_service_type serv
-    ON serv.id = actserv.service_id
-
-WHERE ae.id = 326701;
+    id,
+    description,
+    service_type,
+    COUNT(*) AS row_count
+FROM silver_rdm_wip_service_type
+WHERE id = 306
+GROUP BY
+    id,
+    description,
+    service_type
+ORDER BY row_count DESC;
