@@ -1,3 +1,1 @@
-Investigated SONE session_src_id duplicates and identified case-variant duplicate Care Product records in silver_rdm_care_product as one of the causes. Removed 7 confirmed duplicate records from the SharePoint list and reran the Care Product dataflow. Updated the Care Product ADD logic to use LOWER(TRIM()) when checking existing cprod_src_sys_inst_src_id and cprod_src_id values to prevent future case-based duplicates.
-
-After rebuilding the SONE session test table, duplicate src_session_id count reduced from 1000+ to 681. Remaining duplicates are still under investigation and appear to have a different cause.
+test
