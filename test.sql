@@ -1,21 +1,10 @@
--- Get the exact organisation linked to the session customer
-LEFT JOIN silver_wip_businessrole AS cust_br
-    ON cust_br.id = AHRD.customer_id
+Investigation / Resolution Update
 
-LEFT JOIN silver_wip_organisation AS org
-    ON org.id = cust_br.business_actor_id
-
-
-
-SELECT
-    id,
-    description,
-    service_type,
-    COUNT(*) AS row_count
-FROM silver_rdm_wip_service_type
-WHERE id = 306
-GROUP BY
-    id,
-    description,
-    service_type
-ORDER BY row_count DESC;
+Investigated duplicate WIP src_session_id issue. Initial validation found 82 duplicate source session IDs.
+First root cause was the organisation join using customer_name only. Replaced it with the ID-based relationship:
+AHRD.customer_id → silver_wip_businessrole.id → business_actor_id → silver_wip_organisation.id.
+This reduced duplicates from 82 to 52.
+Remaining duplicates were traced to the WIP service mapping. The existing join on service ID alone was returning multiple mappings.
+Updated the join to also match serv.service_purpose = SerT.description.
+After applying both changes in the test table, the duplicate src_session_id validation now returns 0 duplicates.
+Known duplicate examples were also revalidated successfully.
