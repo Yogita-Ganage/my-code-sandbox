@@ -1,27 +1,25 @@
 %%sql
 
-WITH bridge AS (
-    SELECT
-        src_session_id,
-        cprod_src_id
-    FROM silver_sone_srrotaslot_bridging_to_srappointment
-    WHERE src_session_id IN (
-        'SONE00D1Z35100345160',
-        'SONE00D1Z35137356890'
-    )
-)
+SELECT
+    src_session_id,
+    COUNT(*) AS row_cnt
+FROM silver_sessions_sone_test
+WHERE src_session_id IS NOT NULL
+GROUP BY src_session_id
+HAVING COUNT(*) > 1
+ORDER BY row_cnt DESC;
+
+
+%%sql
 
 SELECT
-    b.src_session_id,
-    b.cprod_src_id AS bridge_cprod_src_id,
-    r.cprod_id,
-    r.cprod_src_id AS rdm_cprod_src_id,
-    r.cprod_src_sys_inst_src_id,
-    r.cprod_src_name
-FROM bridge b
-LEFT JOIN silver_rdm_care_product r
-    ON LOWER(TRIM(r.cprod_src_id))
-     = LOWER(TRIM(b.cprod_src_id))
-ORDER BY
-    b.src_session_id,
-    r.cprod_id;
+    src_session_id,
+    COUNT(*) AS row_cnt,
+    COUNT(DISTINCT session_cprod_id) AS cprod_cnt,
+    COUNT(DISTINCT session_contract_id) AS contract_cnt,
+    COUNT(DISTINCT session_care_professional_id) AS care_prof_cnt
+FROM silver_sessions_sone_test
+WHERE src_session_id IS NOT NULL
+GROUP BY src_session_id
+HAVING COUNT(*) > 1
+ORDER BY row_cnt DESC;
