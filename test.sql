@@ -1,11 +1,9 @@
--- Use the customer business role to map the exact organisation ID and avoid duplicate session records
-LEFT JOIN silver_wip_businessrole AS cust_br
-    ON cust_br.id = AHRD.customer_id
--- Updated WIP organisation join to use the customer business role and organisation ID instead of organisation name to prevent duplicate session records
-LEFT JOIN silver_wip_organisation AS org
-    ON org.id = cust_br.business_actor_id
-
-    -- Match WIP service by both service ID and service purpose to avoid multiple service mappings
-LEFT JOIN silver_rdm_wip_service_type serv
-    ON serv.id = actserv.service_id
-   AND serv.service_purpose = SerT.description
+SELECT
+    src_session_id,
+    COUNT(*) AS row_count,
+    COUNT(DISTINCT session_patient_id) AS patient_count
+FROM silver_sessiony_test
+WHERE z_src_system_id = 'WIP'
+GROUP BY src_session_id
+HAVING COUNT(*) > 1
+ORDER BY patient_count DESC, src_session_id;
