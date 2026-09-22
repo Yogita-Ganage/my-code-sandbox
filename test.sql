@@ -1,28 +1,27 @@
-%%sql
-
+-- Check how many activity_service_id values actually match silver_wip_service
 SELECT
-    COUNT(*) AS total_test_records,
-    SUM(
-        CASE 
-            WHEN form_ques_form_src_name IS NOT NULL
-             AND TRIM(form_ques_form_src_name) <> ''
-            THEN 1 ELSE 0
-        END
-    ) AS records_with_form_src_name
-FROM test_silver_rdm_form_question_add;
+    COUNT(*) AS total_activity_entries,
+    SUM(CASE WHEN ws.id IS NOT NULL THEN 1 ELSE 0 END) AS matched_rows,
+    SUM(CASE WHEN ws.id IS NULL THEN 1 ELSE 0 END) AS unmatched_rows
+FROM silver_wip_activityentry ae
+LEFT JOIN silver_wip_service ws
+    ON ae.activity_service_id = ws.id;
 
 
 
-%%sql
+-- Check all descriptions containing "raised" / "error"
+SELECT
+    LOWER(TRIM(ws.description)) AS service_description,
+    COUNT(*) AS row_count,
+    COUNT(DISTINCT ae.activity_header_id) AS case_count
+FROM silver_wip_activityentry ae
+LEFT JOIN silver_wip_service ws
+    ON ae.activity_service_id = ws.id
+WHERE LOWER(TRIM(ws.description)) LIKE '%raised%'
+   OR LOWER(TRIM(ws.description)) LIKE '%error%'
+GROUP BY LOWER(TRIM(ws.description))
+ORDER BY case_count DESC;
 
-SELECT COUNT(*) AS matched_records
-FROM test_silver_rdm_form_question_add t
-INNER JOIN silver_rdm_form_question r
-    ON LOWER(TRIM(t.form_ques_src_id))
-       = LOWER(TRIM(r.form_ques_src_id))
 
-   AND LOWER(TRIM(t.form_ques_src_sys_inst_id))
-       = LOWER(TRIM(r.form_ques_src_sys_inst_src_id))
 
-   AND LOWER(TRIM(t.form_ques_src_name_full))
-       = LOWER(TRIM(r.form_ques_src_name_full));
+DESCRIBE silver_wip_activityservice;
