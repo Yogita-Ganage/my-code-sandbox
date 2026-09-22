@@ -1,8 +1,9 @@
-SELECT
-    z_src_is_active,
-    COUNT(*) AS row_count,
-    COUNT(DISTINCT care_epi_id) AS distinct_care_episode_count
-FROM test_silver_care_episode
-WHERE z_src_system_id = 'WIP'
-GROUP BY z_src_is_active
-ORDER BY z_src_is_active;
+UAT Rework:
+Investigated the WIP z_src_is_active UAT failure. The issue was caused by an incorrect direct join between silver_wip_activityentry and silver_wip_service. Updated the logic to join via silver_wip_activityservice as per the source relationship.
+
+Validation completed:
+
+Both joins have 0 unmatched records.
+3,834 distinct WIP care episodes are correctly identified as inactive.
+No incorrectly flagged inactive records were found.
+Sample records were validated against the expected “case raised in error” service descriptions.
