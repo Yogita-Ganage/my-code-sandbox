@@ -1,16 +1,5 @@
-WITH src_mpb_test AS (
-    SELECT DISTINCT
-        CONCAT('MPB001', ' - ', CAST(t.id AS STRING)) AS service_src_id,
-        UPPER(TRIM(t.service_line)) AS service_src_name,
-        'MPB001' AS service_src_sys_inst_id
-    FROM silver.silver_drj_tenancies t
-    WHERE t.service_line IS NOT NULL
-      AND TRIM(t.service_line) <> ''
-)
-
-SELECT
-    service_src_name,
-    COUNT(DISTINCT service_src_id) AS id_count
-FROM src_mpb_test
-GROUP BY service_src_name
-ORDER BY id_count DESC;
+Reworked MPB service_src_name and service_src_id following the updated definition.
+Updated the logic to use service_line instead of invoice_prefix.
+service_src_name now returns the MPB service line, and service_src_id is derived as MPB001 - <service_line>.
+Confirmed with Eve to use service_line for the ID as well.
+Validation completed and the output is now at service-line level rather than tenancy level.
