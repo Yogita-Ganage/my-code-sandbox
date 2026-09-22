@@ -1,1 +1,7 @@
-Note: Header-level aggregation is required because some WIP care episodes contain multiple activity entries with mixed service descriptions. Validation identified 229 headers where at least one entry is “raised in error” while other entries are not. Using MAX(CASE...) grouped by activity_header_id ensures the full care episode is correctly flagged as inactive if any related activity entry is raised in error.
+SELECT DISTINCT
+    id,
+    name,
+    service_line,
+    invoice_prefix
+FROM silver.silver_drj_tenancies
+WHERE name IS NOT NULL;
