@@ -20,3 +20,24 @@ SELECT
 FROM bronze_sone_srappointmentflags
 WHERE RowIdentifier = 2284411412712
 ORDER BY id_organisation_source, file_date DESC;
+
+
+SELECT
+    id_organisation_source,
+    COUNT(*) AS row_count,
+    MIN(
+        to_date(
+            reverse(substring(reverse(FILEDATE), 5, 8)),
+            'yyyyMMdd'
+        )
+    ) AS min_file_date,
+    MAX(
+        to_date(
+            reverse(substring(reverse(FILEDATE), 5, 8)),
+            'yyyyMMdd'
+        )
+    ) AS max_file_date
+FROM bronze_sone_srappointmentflags
+WHERE RowIdentifier = 2284411412712
+GROUP BY id_organisation_source
+ORDER BY id_organisation_source;
