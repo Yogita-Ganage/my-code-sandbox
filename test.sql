@@ -1,16 +1,17 @@
-%%sql
+WITH mpb_source AS (
+    ...
+),
 
-DROP TABLE IF EXISTS zz_test_sone_delivery_method;
+wip_source AS (
+    ...
+),
 
-CREATE TABLE zz_test_sone_delivery_method AS
-
-WITH sone_appointment_flags AS
-(
+-- NEW: Aggregate SONE appointment flags first
+sone_appointment_flags AS (
     SELECT
         af.id_appointment,
         af.id_organisation_source,
 
-        -- Combine all mapped flag descriptions in alphabetical order
         CONCAT_WS(
             '_',
             SORT_ARRAY(
@@ -31,19 +32,34 @@ WITH sone_appointment_flags AS
         af.id_organisation_source
 ),
 
-appointment_delivery_method AS
-(
-    SELECT
-        a.id AS appointment_id,
-        a.id_organisation_source,
+sone_source AS (
+    SELECT DISTINCT
+
+        -- del_meth_src_id:
+        -- No unique SONE Delivery Method ID is available,
+        -- so derive it from system instance + the same values used for source name
+        CONCAT(
+            'SONE',
+            a.id_organisation_source,
+            '_',
+            LOWER(
+                TRIM(
+                    CONCAT_WS(
+                        '_',
+                        TRIM(a.rota_type),
+                        f.flag_mappings
+                    )
+                )
+            )
+        ) AS del_meth_src_id,
 
         CONCAT(
             'SONE',
             a.id_organisation_source
         ) AS del_meth_src_sys_inst_id,
 
-        -- New Source Name definition:
-        -- rota_type + all appointment flag mapping descriptions
+        -- del_meth_src_name:
+        -- rota type + alphabetically ordered appointment flag descriptions
         CONCAT_WS(
             '_',
             TRIM(a.rota_type),
@@ -57,36 +73,8 @@ appointment_delivery_method AS
         AND a.id_organisation_source = f.id_organisation_source
 
     WHERE a.rota_type IS NOT NULL
-)
+),
 
-SELECT DISTINCT
-
-    -- No unique source ID is available in SONE,
-    -- so derive ID from system instance + the same values used for Source Name
-    CONCAT(
-        'SONE',
-        id_organisation_source,
-        '_',
-        LOWER(TRIM(del_meth_src_name))
-    ) AS del_meth_src_id,
-
-    del_meth_src_sys_inst_id,
-
-    del_meth_src_name
-
-FROM appointment_delivery_method
-
-WHERE del_meth_src_name IS NOT NULL
-  AND TRIM(del_meth_src_name) <> '';
-
-
-
-
-SELECT *
-FROM zz_test_sone_delivery_method
-LIMIT 50;
-
-SELECT
-    COUNT(*) AS total_rows,
-    COUNT(DISTINCT del_meth_src_id) AS distinct_ids
-FROM zz_test_sone_delivery_method;
+cf_source AS (
+    ...
+),
