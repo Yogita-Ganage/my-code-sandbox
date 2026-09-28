@@ -1,3 +1,9 @@
+%%sql
+
+DROP TABLE IF EXISTS zz_test_sone_del_meth_src_name;
+
+CREATE TABLE zz_test_sone_del_meth_src_name AS
+
 WITH sone_appointment_flags AS
 (
     SELECT
@@ -25,6 +31,8 @@ WITH sone_appointment_flags AS
 SELECT
     a.id AS appointment_id,
     a.id_organisation_source,
+    CONCAT('SONE', a.id_organisation_source) AS del_meth_src_sys_inst_id,
+
     a.rota_type,
     f.flag_mappings,
 
@@ -40,4 +48,72 @@ LEFT JOIN sone_appointment_flags f
     ON a.id = f.id_appointment
     AND a.id_organisation_source = f.id_organisation_source
 
-WHERE a.id = 158089670415;
+WHERE a.rota_type IS NOT NULL;
+
+
+
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(DISTINCT appointment_id, id_organisation_source) AS distinct_appointments
+FROM zz_test_sone_del_meth_src_name;
+
+
+SELECT
+    appointment_id,
+    id_organisation_source,
+    COUNT(*) AS duplicate_count
+FROM zz_test_sone_del_meth_src_name
+GROUP BY
+    appointment_id,
+    id_organisation_source
+HAVING COUNT(*) > 1
+ORDER BY duplicate_count DESC;
+
+SELECT
+    COUNT(*) AS total_rows,
+
+    SUM(
+        CASE WHEN del_meth_src_name IS NULL
+                  OR TRIM(del_meth_src_name) = ''
+             THEN 1 ELSE 0 END
+    ) AS null_del_meth_src_name,
+
+    SUM(
+        CASE WHEN rota_type IS NULL
+             THEN 1 ELSE 0 END
+    ) AS null_rota_type,
+
+    SUM(
+        CASE WHEN flag_mappings IS NULL
+             THEN 1 ELSE 0 END
+    ) AS no_flag_records
+
+FROM zz_test_sone_del_meth_src_name;
+
+
+
+
+
+SELECT
+    id_organisation_source,
+    del_meth_src_name,
+    COUNT(*) AS record_count
+FROM zz_test_sone_del_meth_src_name
+GROUP BY
+    id_organisation_source,
+    del_meth_src_name
+HAVING COUNT(*) > 1
+ORDER BY record_count DESC;
+
+
+
+
+SELECT
+    appointment_id,
+    id_organisation_source,
+    rota_type,
+    flag_mappings,
+    del_meth_src_name
+FROM zz_test_sone_del_meth_src_name
+WHERE flag_mappings LIKE '%_%'
+LIMIT 50;
