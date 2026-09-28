@@ -1,65 +1,19 @@
-WITH test_check AS
-(
+-- SONE: aggregate appointment flag descriptions before joining to avoid duplicate appointment rows
+sone_appointment_flags AS (
+    SELECT af.id_appointment, af.id_organisation_source,
+           CONCAT_WS('_', SORT_ARRAY(COLLECT_SET(TRIM(m.mapping)))) AS flag_mappings
+    FROM silver_sone_srappointmentflags af
+    LEFT JOIN silver_sone_srmapping m ON af.flag = m.id AND af.id_organisation_source = m.id_organisation_source
+    WHERE m.mapping IS NOT NULL
+    GROUP BY af.id_appointment, af.id_organisation_source
+),
+
+sone_care_product AS (
     SELECT DISTINCT
-        c.case_pk,
-        c.database_source,
-        c.case_first_appointment_fk,
-
-        appt.appointment_pk,
-        appt.stock_item_fk,
-
-        si.stock_item_description,
-
-        CONCAT(
-            c.database_source,
-            ' - ',
-            TRIM(si.stock_item_description)
-        ) AS constructed_cprod_src_id,
-
-        rdmcc.cprod_src_id,
-        rdmcc.cprod_src_sys_inst_id,
-        rdmcc.cprod_type_conformed,
-
-        CASE
-            WHEN LOWER(rdmcc.cprod_type_conformed) LIKE '%test%'
-            THEN 1
-            ELSE 0
-        END AS expected_care_epi_is_test
-
-    FROM silver_tm3_dim_cases c
-
-    LEFT JOIN silver_tm3_fact_appointments appt
-        ON c.case_first_appointment_fk = appt.appointment_pk
-       AND appt.practitioner_fk <> 0
-       AND c.database_source = appt.database_source
-
-    LEFT JOIN silver_tm3_dim_stock_items si
-        ON appt.stock_item_fk = si.stock_item_pk
-       AND appt.database_source = si.database_source
-
-    LEFT JOIN silver_rdm_care_product rdmcc
-        ON LOWER(TRIM(rdmcc.cprod_src_id))
-         = LOWER(
-             TRIM(
-                 CONCAT(
-                     c.database_source,
-                     ' - ',
-                     TRIM(si.stock_item_description)
-                 )
-             )
-           )
-       AND rdmcc.cprod_src_sys_inst_id = c.database_source
-
-    LEFT JOIN silver_tm3_dim_case_deletions dcd
-        ON c.case_pk = dcd.case_pk
-       AND c.database_source = dcd.database_source
-
-    WHERE dcd.deleted_at IS NULL
-)
-
-SELECT
-    expected_care_epi_is_test,
-    COUNT(*) AS record_count
-FROM test_check
-GROUP BY expected_care_epi_is_test
-ORDER BY expected_care_epi_is_test;
+           CONCAT_WS('_', TRIM(a.rota_type), f.flag_mappings) AS cprod_name,
+           CONCAT('SONE', a.id_organisation_source) AS cprod_src_sys_inst_id,
+           CONCAT('SONE', a.id_organisation_source, '_', LOWER(TRIM(CONCAT_WS('_', TRIM(a.rota_type), f.flag_mappings)))) AS cprod_src_id
+    FROM silver_sone_srappointment a
+    LEFT JOIN sone_appointment_flags f ON a.id = f.id_appointment AND a.id_organisation_source = f.id_organisation_source
+    WHERE a.rota_type IS NOT NULL AND a.id_organisation_source IS NOT NULL
+),
