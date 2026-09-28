@@ -1,1 +1,26 @@
-Implemented the Silver table creation logic for srappointmentflags. Reviewed the existing SONE Silver patterns and identified two approaches for latest-record selection: RowIdentifier only and RowIdentifier + id_organisation_source. Validated the Bronze data and confirmed that the same RowIdentifier can exist across multiple organisations, so the logic uses RowIdentifier + id_organisation_source to retain the latest record for each organisation separately.
+SELECT DISTINCT
+    af.flag,
+    m.id,
+    m.id_mapping_group,
+    m.mapping,
+    af.id_organisation_source
+FROM silver_sone_srappointmentflags af
+LEFT JOIN silver_sone_srmapping m
+    ON af.flag = m.id
+    AND af.id_organisation_source = m.id_organisation_source
+WHERE af.flag IS NOT NULL
+LIMIT 50;
+
+
+SELECT DISTINCT
+    af.flag,
+    m.id,
+    m.id_mapping_group,
+    m.mapping,
+    af.id_organisation_source
+FROM silver_sone_srappointmentflags af
+LEFT JOIN silver_sone_srmapping m
+    ON af.flag = m.id_mapping_group
+    AND af.id_organisation_source = m.id_organisation_source
+WHERE af.flag IS NOT NULL
+LIMIT 50;
