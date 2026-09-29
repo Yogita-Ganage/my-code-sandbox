@@ -1,9 +1,32 @@
 SELECT
-    src_session_id,
-    cprod_src_id,
-    rota_type,
-    rota_slot_type,
-    id_organisation_source
-FROM silver_sone_srrotaslot_bridging_to_srappointment
-WHERE cprod_src_id IS NOT NULL
-LIMIT 50;
+    z_src_system_id,
+    COUNT(*) AS total_count,
+    SUM(
+        CASE
+            WHEN care_epi_completion_status_conformed IS NULL THEN 1
+            ELSE 0
+        END
+    ) AS null_count,
+    SUM(
+        CASE
+            WHEN care_epi_completion_status_conformed = 0 THEN 1
+            ELSE 0
+        END
+    ) AS zero_count,
+    SUM(
+        CASE
+            WHEN care_epi_completion_status_conformed = 1 THEN 1
+            ELSE 0
+        END
+    ) AS one_count
+FROM test_silver_care_episode1
+GROUP BY z_src_system_id
+ORDER BY z_src_system_id;
+
+
+SELECT
+    session_care_epi_id,
+    care_epi_completion_status_conformed
+FROM test_silver_staging_completion_status_conformed
+WHERE session_care_epi_id LIKE 'MPB%'
+LIMIT 20;
