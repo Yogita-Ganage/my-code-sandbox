@@ -1,19 +1,9 @@
-SELECT
-    appointment_id,
-    COUNT(*) AS financial_rows,
-    COUNT(
-        DISTINCT COALESCE(
-            CAST(billed_fee_amount AS STRING),
-            'NULL'
-        )
-    ) AS distinct_cost_values
-FROM silver_drj_appointment_financials
-WHERE appointment_id IS NOT NULL
-GROUP BY appointment_id
-HAVING COUNT(*) > 1
-   AND COUNT(
-        DISTINCT COALESCE(
-            CAST(billed_fee_amount AS STRING),
-            'NULL'
-        )
-   ) > 1;
+-- Keep one financial record per appointment, prioritising non-null billed fee values.
+LEFT JOIN (
+    SELECT * FROM (
+        SELECT af.*, ROW_NUMBER() OVER (PARTITION BY appointment_id ORDER BY CASE WHEN billed_fee_amount IS NOT NULL THEN 0 ELSE 1 END, updated_at DESC) rn
+        FROM silver_drj_appointment_financials af
+    ) x WHERE rn = 1
+) apptfin ON apptfin.appointment_id = appt.id
+
+
