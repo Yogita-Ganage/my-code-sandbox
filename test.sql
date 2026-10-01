@@ -1,11 +1,38 @@
-SELECT
-    arans.assessment_result_id,
-    COUNT(*) AS answer_row_count,
-    MIN(arans.assessment_answer_id) AS sample_assessment_answer_id
-FROM silver_drj_assessment_result_for_answers arans
-LEFT JOIN silver_drj_assessment_results ar
-    ON arans.assessment_result_id = ar.id
-WHERE ar.id IS NULL
-GROUP BY arans.assessment_result_id
-ORDER BY answer_row_count DESC
-LIMIT 10;
+SELECT 'bronze_drj_assessmentresults' AS table_name,
+       COUNT(*) AS row_count
+FROM bronze_drj_assessmentresults
+
+UNION ALL
+
+SELECT 'silver_drj_assessment_results',
+       COUNT(*)
+FROM silver_drj_assessment_results
+
+UNION ALL
+
+SELECT 'bronze_drj_assessmentresultforanswers',
+       COUNT(*)
+FROM bronze_drj_assessmentresultforanswers
+
+UNION ALL
+
+SELECT 'silver_drj_assessment_result_for_answers',
+       COUNT(*)
+FROM silver_drj_assessment_result_for_answers
+
+UNION ALL
+
+SELECT 'bronze_drj_assessmentanswers',
+       COUNT(*)
+FROM bronze_drj_assessmentanswers
+
+UNION ALL
+
+SELECT 'silver_drj_assessment_answers',
+       COUNT(*)
+FROM silver_drj_assessment_answers;
+
+
+SELECT *
+FROM bronze_drj_assessmentresults
+WHERE id = 477787;
