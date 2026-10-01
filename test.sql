@@ -1,31 +1,10 @@
-WITH unmatched AS (
-    SELECT
-        arans.assessment_answer_id
-    FROM silver_drj_assessment_result_for_answers arans
-    LEFT JOIN silver_drj_assessment_results ar
-        ON arans.assessment_result_id = ar.id
-    WHERE ar.id IS NULL
-),
-
-unmatched_counts AS (
-    SELECT
-        assessment_answer_id,
-        COUNT(*) AS base_rows
-    FROM unmatched
-    GROUP BY assessment_answer_id
-),
-
-answer_counts AS (
-    SELECT
-        id,
-        COUNT(*) AS answer_table_rows
-    FROM silver_drj_assessment_answers
-    GROUP BY id
-)
-
-SELECT
-    SUM(u.base_rows * (a.answer_table_rows - 1)) AS total_extra_rows
-FROM unmatched_counts u
-JOIN answer_counts a
-    ON u.assessment_answer_id = a.id
-WHERE a.answer_table_rows > 1;
+Investigation Findings – MPB form_ans_care_epi_id UAT Failure
+UAT reported 60,299 blank form_ans_care_epi_id records for MPB.
+Investigation confirmed:
+- Current logic is CONCAT('MPB001', ar.user_id).
+- ar.user_id itself is populated and maps correctly to silver_drj_users.id for the vast majority of records.
+- 60,230 rows have no matching parent record in silver_drj_assessment_results for arans.assessment_result_id.
+- These relate to 8,446 distinct assessment result IDs, and the same IDs are also not present in bronze_drj_assessmentresults.
+- An additional 69 rows are introduced by duplicate id values in silver_drj_assessment_answers.
+- This fully reconciles the UAT blank count: 60,230 + 69 = 60,299.
+No code change made yet. Expected handling for these missing parent assessment-result records needs to be confirmed before applying a fix.
