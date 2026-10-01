@@ -24,6 +24,6 @@ FROM unmatched u
 
 LEFT JOIN (
     SELECT DISTINCT id
-    FROM bronze_drj_assessment_results
+    FROM bronze_drj_assessmentresults
 ) b
     ON u.assessment_result_id = b.id;
