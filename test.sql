@@ -1,7 +1,8 @@
 SELECT
-    COUNT(*) AS unmatched_answer_rows,
-    COUNT(DISTINCT arans.assessment_result_id) AS unmatched_distinct_ids
-FROM silver_drj_assessment_result_for_answers arans
-LEFT JOIN silver_drj_assessment_results ar
-    ON arans.assessment_result_id = ar.id
-WHERE ar.id IS NULL;
+    form_ans_id,
+    COUNT(*) AS null_count
+FROM test_silver_form_answer
+WHERE form_ans_care_epi_id IS NULL
+  AND z_src_system_id = 'MPB'
+GROUP BY form_ans_id
+ORDER BY null_count DESC;
