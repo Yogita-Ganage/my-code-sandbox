@@ -1,23 +1,29 @@
+WITH unmatched AS (
+    SELECT DISTINCT
+        arans.assessment_result_id
+    FROM silver_drj_assessment_result_for_answers arans
+    LEFT JOIN silver_drj_assessment_results ar
+        ON arans.assessment_result_id = ar.id
+    WHERE ar.id IS NULL
+)
+
 SELECT
-    COUNT(*) AS total_rows,
+    COUNT(*) AS unmatched_ids,
 
     SUM(
-        CASE WHEN ar.id IS NULL
+        CASE WHEN b.id IS NOT NULL
         THEN 1 ELSE 0 END
-    ) AS assessment_result_not_matched,
+    ) AS found_in_bronze,
 
     SUM(
-        CASE WHEN ar.id IS NOT NULL
-              AND ar.user_id IS NULL
+        CASE WHEN b.id IS NULL
         THEN 1 ELSE 0 END
-    ) AS matched_but_user_id_null,
+    ) AS not_found_in_bronze
 
-    SUM(
-        CASE WHEN ar.user_id IS NOT NULL
-        THEN 1 ELSE 0 END
-    ) AS user_id_present
+FROM unmatched u
 
-FROM silver_drj_assessment_result_for_answers arans
-
-LEFT JOIN silver_drj_assessment_results ar
-    ON arans.assessment_result_id = ar.id;
+LEFT JOIN (
+    SELECT DISTINCT id
+    FROM bronze_drj_assessment_results
+) b
+    ON u.assessment_result_id = b.id;
