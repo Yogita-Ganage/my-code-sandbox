@@ -24,20 +24,8 @@ answer_counts AS (
 )
 
 SELECT
-    u.assessment_answer_id,
-    u.base_rows,
-    a.answer_table_rows,
-    u.base_rows * a.answer_table_rows AS rows_after_join,
-    u.base_rows * (a.answer_table_rows - 1) AS extra_rows
+    SUM(u.base_rows * (a.answer_table_rows - 1)) AS total_extra_rows
 FROM unmatched_counts u
 JOIN answer_counts a
     ON u.assessment_answer_id = a.id
-WHERE a.answer_table_rows > 1
-ORDER BY extra_rows DESC;
-
-
-
-60,230 original unmatched rows
-+   69 duplicate rows introduced by assessment_answers join
----------------------------------------------------------
-60,299 final NULL rows
+WHERE a.answer_table_rows > 1;
