@@ -12,20 +12,38 @@ INSERT INTO silver_rdm_delete_config
 )
 VALUES
 (
-    1,
-    'RDM - Care Product',
-    'cprod_src_sys_inst_src_id',
+    3,
+    'RDM - Delivery Method',
+    'del_meth_src_sys_inst_src_id',
     'TEXT',
-    'cprod_src_sys_inst_id',
-    'cprod_src_sys_inst_src_id',
+    'del_meth_src_sys_inst_id',
+    'del_meth_src_sys_inst_src_id',
     true
 ),
 (
-    2,
-    'RDM - Service',
-    'service_src_sys_inst_id',
+    4,
+    'RDM - Form Answer Bridging',
+    'form_ans_bridge_src_sys_inst_src_id',
     'TEXT',
-    NULL,
-    'service_src_sys_inst_id',
+    'form_ans_bridge_src_sys_inst_id',
+    'form_ans_bridge_src_sys_inst_src_id',
+    true
+),
+(
+    5,
+    'RDM - Form Question',
+    'form_ques_src_sys_inst_src_id',
+    'TEXT',
+    'form_ques_src_sys_inst_id',
+    'form_ques_src_sys_inst_src_id',
+    true
+),
+(
+    6,
+    'RDM - Contract',
+    'contr_src_sys_inst_src_id',
+    'TEXT',
+    'contr_src_sys_inst_id',
+    'contr_src_sys_inst_src_id',
     true
 );
