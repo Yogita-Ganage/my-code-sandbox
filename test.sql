@@ -1,4 +1,13 @@
-Investigated the NULL values in care_epi_completion_status_conformed for MPB. The NULLs were caused by care episodes with no matching sessions, so no record was created in the completion status staging table and the LEFT JOIN returned NULL. Eve confirmed that these cases should default to 0. Updated the Care Episode logic using COALESCE and validated that the completion status now returns only 0 or 1 with no NULL values.
-
-
--- Default completion status to 0 when no matching completion-status staging record exists, as confirmed by Eve.
+EVALUATE
+SELECTCOLUMNS(
+    FILTER(
+        'silver_rdm_delete_config',
+        'silver_rdm_delete_config'[active_flag] = TRUE()
+    ),
+    "config_id", 'silver_rdm_delete_config'[config_id],
+    "rdm_list_name", 'silver_rdm_delete_config'[rdm_list_name],
+    "instance_filter_column", 'silver_rdm_delete_config'[instance_filter_column],
+    "instance_filter_type", 'silver_rdm_delete_config'[instance_filter_type],
+    "lookup_column_name", 'silver_rdm_delete_config'[lookup_column_name],
+    "text_column_name", 'silver_rdm_delete_config'[text_column_name]
+)
