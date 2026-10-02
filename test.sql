@@ -1,10 +1,1 @@
-SELECT
-    arans.assessment_result_id,
-    COUNT(*) AS answer_row_count
-FROM silver_drj_assessment_result_for_answers arans
-LEFT JOIN silver_drj_assessment_results ar
-    ON arans.assessment_result_id = ar.id
-WHERE ar.id IS NULL
-GROUP BY arans.assessment_result_id
-ORDER BY answer_row_count DESC
-LIMIT 10;
+After refreshing/rebuilding the MPB assessment tables, the blank form_ans_care_epi_id count reduced from 60,299 to 39,992. Further validation shows all remaining 39,992 rows fail at the initial join between assessment_result_for_answers.assessment_result_id and assessment_results.id. These same rows also have blank form_ans_form_ques_id, as the required assessment_result parent record is unavailable. No additional joins are increasing the null count now.
