@@ -1,1 +1,1 @@
-body('Post_adaptive_card_and_wait_for_a_response')?['data']?['rdmList']
+body('RDM_SP_List_Selection_PostAC')?['data']?['rdmList']
