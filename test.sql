@@ -1,5 +1,1 @@
-concat(
-  '{"type":"AdaptiveCard","$schema":"http://adaptivecards.io/schemas/adaptive-card.json","version":"1.4","body":',
-  string(variables('varInstanceCardBody')),
-  ',"actions":[{"type":"Action.Submit","title":"Continue"}]}'
-)
+body('Post_adaptive_card_and_wait_for_a_response')?['data']?['rdmList']
