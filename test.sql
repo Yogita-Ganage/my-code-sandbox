@@ -1,15 +1,7 @@
 json(
-'[
-  {
-    "type": "TextBlock",
-    "text": "RDM Controlled Delete Tool",
-    "weight": "Bolder",
-    "size": "Medium"
-  },
-  {
-    "type": "TextBlock",
-    "text": "Select the instances to process",
-    "wrap": true
-  }
-]'
+  concat(
+    '{"type":"TextBlock","text":"',
+    items('Apply_to_each')?['value'],
+    '","weight":"Bolder","separator":true,"spacing":"Medium"}'
+  )
 )
