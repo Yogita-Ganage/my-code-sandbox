@@ -1,9 +1,5 @@
-json(
-  concat(
-    '{"type":"Input.ChoiceSet","id":"instances_',
-    replace(items('Apply_to_each')?['value'],' ','_'),
-    '","style":"expanded","isMultiSelect":true,"choices":',
-    string(body('Select_-_Current_System_Instance_Choices')),
-    '}'
-  )
+concat(
+  '{"type":"AdaptiveCard","$schema":"http://adaptivecards.io/schemas/adaptive-card.json","version":"1.4","body":',
+  string(variables('varInstanceCardBody')),
+  ',"actions":[{"type":"Action.Submit","title":"Continue"}]}'
 )
