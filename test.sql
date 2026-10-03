@@ -1,1 +1,4 @@
-body('RDM_SP_List_Selection_PostAC')?['data']?['rdmList']
+@contains(
+  createArray('MPB','CF','SONE','IAPT','TM3','WIP'),
+  item()?['SourceSystem']
+)
