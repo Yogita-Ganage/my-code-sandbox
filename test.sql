@@ -1,22 +1,48 @@
-%%sql
-
-INSERT INTO silver_rdm_delete_config
-(
-    config_id,
-    rdm_list_name,
-    instance_filter_column,
-    instance_filter_type,
-    lookup_column_name,
-    text_column_name,
-    active_flag
-)
-VALUES
-(
-    7,
-    'RDM - Yogita - TEST',
-    'PASTE_INTERNAL_NAME',
-    'TEXT',
-    NULL,
-    'test_sp_src_sys_inst_src_id',
-    TRUE
-);
+{
+  "type": "AdaptiveCard",
+  "version": "1.4",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Delete Options",
+      "weight": "Bolder",
+      "size": "Medium"
+    },
+    {
+      "type": "Input.ChoiceSet",
+      "id": "deleteType",
+      "label": "Delete Type",
+      "style": "expanded",
+      "isRequired": true,
+      "choices": [
+        {
+          "title": "All records for selected instance(s)",
+          "value": "ALL"
+        },
+        {
+          "title": "Selected instance(s) + specific date",
+          "value": "DATE"
+        }
+      ]
+    },
+    {
+      "type": "Input.Text",
+      "id": "performedBy",
+      "label": "Performed By",
+      "placeholder": "Enter your name"
+    },
+    {
+      "type": "Input.Text",
+      "id": "reason",
+      "label": "Reason",
+      "placeholder": "Reason for deletion",
+      "isMultiline": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Continue"
+    }
+  ]
+}
