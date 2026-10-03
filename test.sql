@@ -1,1 +1,1 @@
-body('RDM_SP_List_Selection_PostAC')?['data']?['rdmList']
+item()?[outputs('Compose_-_Selected_RDM_Config')?['[instance_filter_column]']]
