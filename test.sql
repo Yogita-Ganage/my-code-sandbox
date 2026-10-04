@@ -7,4 +7,8 @@ Total records deleted:
 Instance summary:
 
 
-outputs('Compose_-_Selected_RDM_Config')?['[rdm_list_name]']
+outputs('Delete_Method')?['body/data/deleteMethod']
+
+outputs('Compose_-_Matching_Record_Count')
+
+outputs('Compose_-_Deletion_Summary_Text')
