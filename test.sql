@@ -1,8 +1,1 @@
-if(
-  equals(
-    outputs('Compose_-_Selected_RDM_Config')?['[instance_filter_type]'],
-    'LOOKUP'
-  ),
-  string(item()?['InstanceLookupID']),
-  string(item()?['InstanceSourceID'])
-)
+string(items('Apply_to_each_-_Unique_Instances'))
