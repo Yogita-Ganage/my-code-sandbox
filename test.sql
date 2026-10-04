@@ -1,24 +1,5 @@
-{
-  "type": "AdaptiveCard",
-  "version": "1.4",
-  "body": [
-    {
-      "type": "TextBlock",
-      "text": "Select Date",
-      "weight": "Bolder",
-      "size": "Medium"
-    },
-    {
-      "type": "Input.Date",
-      "id": "deleteDate",
-      "label": "Date",
-      "isRequired": true
-    }
-  ],
-  "actions": [
-    {
-      "type": "Action.Submit",
-      "title": "Continue"
-    }
-  ]
-}
+concat(
+  '{"type":"AdaptiveCard","$schema":"http://adaptivecards.io/schemas/adaptive-card.json","version":"1.4","body":',
+  string(variables('varInstanceCardBody')),
+  ',"actions":[{"type":"Action.Submit","title":"Continue"}]}'
+)
