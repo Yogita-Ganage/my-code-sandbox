@@ -1,1 +1,9 @@
-items('Apply_to_each_-_Unique_Instances')
+json(
+  concat(
+    '{"InstanceKey":"',
+    string(items('Apply_to_each_-_Unique_Instances')),
+    '","Count":',
+    string(length(body('Filter_array_-_Current_Instance_Records'))),
+    '}'
+  )
+)
