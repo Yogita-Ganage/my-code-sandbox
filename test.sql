@@ -1,12 +1,6 @@
-json(
-  concat(
-    '{"InstanceKey":"',
-    coalesce(
-      first(body('Filter_array_-_Current_Instance_Master'))?['InstanceSourceID'],
-      string(items('Apply_to_each_-_Unique_Instances'))
-    ),
-    '","Count":',
-    string(length(body('Filter_array_-_Current_Instance_Records'))),
-    '}'
-  )
+concat(
+  item()?['InstanceKey'],
+  ' - ',
+  string(item()?['Count']),
+  ' records deleted'
 )
