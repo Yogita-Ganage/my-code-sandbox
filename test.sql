@@ -1,6 +1,4 @@
-concat(
-  item()?['InstanceKey'],
-  ' - ',
-  string(item()?['Count']),
-  ' records deleted'
+join(
+  body('Select_-_Deletion_Summary_Lines'),
+  decodeUriComponent('%0A')
 )
