@@ -1,15 +1,5 @@
-join(
-  xpath(
-    xml(
-      json(
-        concat(
-          '{"root":',
-          string(body('Instance_Selection_Post_AC_-_Branch')?['data']),
-          '}'
-        )
-      )
-    ),
-    '/root/*/text()'
-  ),
-  ','
+if(
+  empty(outputs('Compose_-_Selected_Instance_String')),
+  json('[]'),
+  split(outputs('Compose_-_Selected_Instance_String'), ',')
 )
