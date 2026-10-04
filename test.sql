@@ -1,12 +1,4 @@
-if(
-  equals(
-    outputs('Compose_-_Selected_RDM_Config')?['[instance_filter_type]'],
-    'LOOKUP'
-  ),
-  string(
-    item()?[outputs('Compose_-_Selected_RDM_Config')?['[lookup_column_name]']]?['Id']
-  ),
-  string(
-    item()?[outputs('Compose_-_Selected_RDM_Config')?['[instance_filter_column]']]
-  )
+union(
+  body('Select_-_Matching_Instance_Keys'),
+  body('Select_-_Matching_Instance_Keys')
 )
