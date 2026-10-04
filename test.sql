@@ -1,4 +1,1 @@
-join(
-  body('Select_-_Instance_filter_Clauses'),
-  ' or '
-)
+outputs('Compose_-_Selected_RDM_Config')?['[rdm_list_name]']
