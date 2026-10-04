@@ -1,6 +1,4 @@
-concat(
-  outputs('Compose_-_Selected_RDM_Config')?['[instance_filter_column]'],
-  ' eq ''',
-  replace(string(item()),'''',''''''),
-  ''''
+join(
+  body('Select_-_Instance_filter_Clauses'),
+  ' or '
 )
