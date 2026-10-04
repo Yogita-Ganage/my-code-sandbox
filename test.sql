@@ -1,4 +1,7 @@
-join(
-  body('Select_-_Deletion_Summary_Lines'),
-  decodeUriComponent('%0A')
-)
+Deletion completed successfully.
+
+RDM List: 
+Delete Method: 
+Total records deleted: 
+
+Instance summary:
