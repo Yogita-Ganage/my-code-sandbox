@@ -1,4 +1,1 @@
-union(
-  body('Select_-_Matching_Instance_Keys'),
-  body('Select_-_Matching_Instance_Keys')
-)
+items('Apply_to_each_-_Unique_Instances')
