@@ -1,7 +1,4 @@
-join(
-  body('Select_-_lookup_filter_clauses'),
-  ' or '
-)if(
+if(
   equals(
     outputs('Compose_-_Selected_RDM_Config')?['[instance_filter_type]'],
     'LOOKUP'
