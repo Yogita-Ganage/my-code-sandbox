@@ -1,5 +1,22 @@
 if(
-  empty(outputs('Compose_-_Selected_Instance_String')),
+  empty(outputs('Compose_-_Selected_Instance_String')?['data']),
   json('[]'),
-  split(outputs('Compose_-_Selected_Instance_String'), ',')
+  split(
+    join(
+      xpath(
+        xml(
+          json(
+            concat(
+              '{"root":',
+              string(outputs('Compose_-_Selected_Instance_String')?['data']),
+              '}'
+            )
+          )
+        ),
+        '/root/*/text()'
+      ),
+      ','
+    ),
+    ','
+  )
 )
