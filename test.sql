@@ -1,1 +1,1 @@
-outputs('Compose_-_Selected_RDM_Config')?['[rdm_list_name]']
+form_ques_src_sys_inst_id_x003a_ eq 'CF001'
