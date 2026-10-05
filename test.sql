@@ -1,1 +1,1 @@
-test
+As confirmed by Eve, older WIP questions may be made inactive rather than deleted, so related records can remain in the data even when they’re no longer visible in the front end. I refreshed the Fabric table and confirmed these records are still present. The definition and code are aligned, so no code changes are needed. Closing this task.
