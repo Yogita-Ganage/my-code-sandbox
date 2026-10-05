@@ -1,4 +1,1 @@
-Investigated the S1 form_ans_form_ques_id UAT failure using the example provided in UAT (CTV3Code = Ua0TB, IDOrganisationSource = O0D1Z).
-The source record is present in silver_sone_srcode, and the corresponding mapping also exists in silver_rdm_form_answer_bridging (form_ans_bridge_id = 593, source instance SONEO0D1Z).
-However, the source question heading derived from the SEL/DERM read code tables is NULL. Because the current bridge join also matches on question name, this condition fails and the question/answer does not join correctly.
-Next step is to investigate the SEL/DERM read code mapping for this CTV3 code and confirm the required code change.
+test
