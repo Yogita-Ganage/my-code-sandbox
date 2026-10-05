@@ -1,7 +1,6 @@
-SELECT
-    id_organisation_source,
-    COUNT(*) AS row_count
-FROM silver_sone_srcode
-WHERE id_referral_in IS NOT NULL
-GROUP BY id_organisation_source
-ORDER BY row_count DESC;
+SELECT *
+FROM silver_rdm_form_question
+WHERE form_ques_id IN (
+    26577, 26578, 26579, 26580,
+    26581, 26582, 26583, 26587
+);
