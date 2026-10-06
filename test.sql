@@ -1,2 +1,1 @@
-The source answer record exists in silver_sone_srcode, but the same CTV3 code Ua0TB is not present in either silver_rdm_sel_read_codes or silver_rdm_derm_read_codes. Could you please check whether this mapping exists in legacy/source reference data?
-If it exists upstream, then we may be missing it in the fabric load/sync.
+test
